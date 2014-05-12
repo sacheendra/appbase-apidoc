@@ -1,4 +1,5 @@
-appbase-apidoc
-==============
+# http://appbase.io/ API Documentation
+---
+# Methods in Global scope
 
-API documentation for http://appbase.io/
+## Appbase.new(path)
