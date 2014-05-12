@@ -2,6 +2,9 @@
 
 __Read the functions like this:__
 __name(arg1: type, arg2: type, ..., ?optional-arg1: type): return-type__
+__"string1:string2" = string1 + ":" + string2__
+__?thing - means thing is optional__
+
 
 # Methods in Global scope
 
