@@ -21,7 +21,7 @@ An Appbase reference pointing to the new object
 
 #### Example
 ```javascript
-
+var ab = Appbase.new('User','andy_dufresne');
 ```
 
 
