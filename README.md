@@ -24,16 +24,22 @@ An Appbase reference pointing to the new object
 var ab = Appbase.new('User','andy_dufresne');
 ```
 
+### Appbase.ref()
 
-
-## Appbase.ref("collection:key": String): Appbase reference
 This function takes a collection-key pair as a string of the format "collection-name:key" and returns a reference to the object if it exists. Returns an error otherwise.
 
 
----
+#### Usage
+```
+Appbase.ref(path)
+```
+ - __path__ _String_ -
+	path to the object in Appbase
 
+#### Returns
+An Appbase reference pointing to the object located at given path 
 
-# Methods of an Appbase reference
-
-
-
+#### Example
+```javascript
+var ab = Appbase.ref('User:andy_dufresne/Tool:rock_hammer');
+```
