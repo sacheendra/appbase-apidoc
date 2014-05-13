@@ -69,7 +69,7 @@ var path = ab.path();
 Sets value for a property
 
 #### Usage
-```
+```javascript
 set(property,value)
 ```
  - __property__ `String`
