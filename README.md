@@ -52,7 +52,7 @@ To know what path this reference points to.
 
 #### Usage
 ```
-var path = ab.path();
+path()
 ```
 
 #### Returns
@@ -70,7 +70,7 @@ Sets value for a property
 
 #### Usage
 ```
-ab.set(property,value);
+set(property,value)
 ```
  - __property__ `String`
  - __value__ `String/Boolean/Number/null/undefined` - Giving null or undefined as the value removes the property
@@ -87,7 +87,7 @@ The same `Appbase` reference, to allow chaining of set methods
 Getting the value of a property
 #### Usage
 ```
-ab.get([property],callback);
+-get([property],callback)
 ```
  - __property__ _(optional)_ `String` - If no property is given, all the properties and their values are returned in a javascript object
  - __callback__ `Function` - This function will be called with arguement - value of the given property, or the object with all property/value pairs
