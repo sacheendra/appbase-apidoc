@@ -107,6 +107,7 @@ getTree([levels],callback)
 ```
  - __levels__ _(optional)_ `Number` - Depth of levels by which nested objects will be returned
  - __callback__ `Function`
+
 #### Returns
 `null`
 
@@ -122,6 +123,7 @@ link([key],ab)
 ```
  - __key__ _(optional)_ `String` -
  - __ab__ `Appbase` reference - 
+
 #### Returns
 `null`
 
