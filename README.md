@@ -86,7 +86,7 @@ The same `Appbase` reference, to allow chaining of set methods
 ### get()
 Getting the value of a property
 #### Usage
-```
+```javascript
 get([property],callback)
 ```
  - __property__ _(optional)_ `String` - If no property is given, all the properties and their values are returned in a javascript object
@@ -101,8 +101,77 @@ get([property],callback)
 ```
 
 ### getTree()
-### on()
-### off()
+#### Usage
+```javascript
+getTree([levels],callback)
+```
+ - __levels__ _(optional)_ `Number` - Depth of levels by which nested objects will be returned
+ - __callback__ `Function`
+#### Returns
+`null`
+
+#### Example
+```
+
+```
+
 ### link()
+#### Usage
+```javascript
+link([key],ab)
+```
+ - __key__ _(optional)_ `Number` - Depth of levels by which nested objects will be returned
+ - __ab__ `Appbase` reference - 
+#### Returns
+`null`
+
+#### Example
+```
+
+```
+
 ### unlink()
 
+#### Usage
+```javascript
+unlink(ab)
+unlink(collection,key)
+```
+
+ - __collection__ `String` - 
+ - __key__ `String` - 
+
+#### Returns
+`null`
+
+#### Example
+```
+
+```
+### on()
+#### Usage
+```javascript
+on(event,callback)
+```
+ - __event__ `String` - 
+ - __callback__ `Function` - 
+#### Returns
+`null`
+
+#### Example
+```
+
+```
+### off()
+#### Usage
+```javascript
+off(event)
+```
+ - __event__ `String` -
+#### Returns
+`null`
+
+#### Example
+```
+
+```
