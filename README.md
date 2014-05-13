@@ -6,18 +6,16 @@
 
 This function takes the name of a collection and creates a new object in that collection. A reference to the newly created object is returned. The collection is created if it does not already exist. An optional key can attached to the collection string, in which case the object will be created with given key.
 
-#### Arguments
+#### Usage
 ```
 Appbase.new(collection,[key])
 ```
-
 - ##### collection
 _String_, Name of the collection
 - ##### key
 _(optional) String_, Key given to the new object
 
 #### Returns
-
 An Appbase reference pointing to the new object 
 
 #### Example
