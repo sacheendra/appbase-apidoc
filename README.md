@@ -120,7 +120,7 @@ getTree([levels],callback)
 ```javascript
 link([key],ab)
 ```
- - __key__ _(optional)_ `Number` - Depth of levels by which nested objects will be returned
+ - __key__ _(optional)_ `String` -
  - __ab__ `Appbase` reference - 
 #### Returns
 `null`
@@ -138,6 +138,7 @@ unlink(ab)
 unlink(collection,key)
 ```
 
+ - __ab__ `Appbase` reference - 
  - __collection__ `String` - 
  - __key__ `String` - 
 
@@ -148,6 +149,8 @@ unlink(collection,key)
 ```
 
 ```
+
+
 ### on()
 #### Usage
 ```javascript
@@ -155,6 +158,7 @@ on(event,callback)
 ```
  - __event__ `String` - 
  - __callback__ `Function` - 
+
 #### Returns
 `null`
 
@@ -162,12 +166,15 @@ on(event,callback)
 ```
 
 ```
+
+
 ### off()
 #### Usage
 ```javascript
 off(event)
 ```
  - __event__ `String` -
+
 #### Returns
 `null`
 
