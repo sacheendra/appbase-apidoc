@@ -10,8 +10,9 @@ This function takes the name of a collection and creates a new object in that co
 ```
 Appbase.new(collection,[key])
 ```
- - __collection__ _String_ -
-Name of the collection
+ - ##### collection 
+	###### _String_
+	Name of the collection
 
  - __key__ _(optional) String_ -
 Key given to the new object
