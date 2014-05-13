@@ -80,6 +80,7 @@ The same `Appbase` reference, to allow chaining of set methods
 
 #### Example
 ```
+
 ```
 
 ### get()
@@ -93,6 +94,11 @@ ab.get([property],callback);
 
 #### Returns
 `null`
+
+#### Example
+```
+
+```
 
 ### getTree()
 ### on()
