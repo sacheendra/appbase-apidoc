@@ -13,7 +13,6 @@ Appbase.new(collection,[key])
 
 - ##### collection
 _String_, Name of the collection
-
 - ##### key
 _(optional) String_, Key given to the new object
 
