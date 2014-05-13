@@ -87,7 +87,7 @@ The same `Appbase` reference, to allow chaining of set methods
 Getting the value of a property
 #### Usage
 ```
--get([property],callback)
+get([property],callback)
 ```
  - __property__ _(optional)_ `String` - If no property is given, all the properties and their values are returned in a javascript object
  - __callback__ `Function` - This function will be called with arguement - value of the given property, or the object with all property/value pairs
