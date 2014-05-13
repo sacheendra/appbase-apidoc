@@ -11,7 +11,7 @@ This function takes the name of a collection and creates a new object in that co
 Appbase.new(collection,[key])
 ```
  - ##### collection 
-	###### _String_
+	_String_
 	Name of the collection
 
  - __key__ _(optional) String_ -
