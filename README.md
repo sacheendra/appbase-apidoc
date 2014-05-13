@@ -43,9 +43,9 @@ var ab = Appbase.ref('User:andy_dufresne/Tool:rock_hammer');
 ```
 
 
-## Appbase reference
+## Appbase object
 
-This object is a reference returned by the class functions - Appbase.new() and Appbase.ref(). It points to an object stored in the appbase.
+This object is returned by the class functions - Appbase.new() and Appbase.ref(). It is a reference to an object stored in Appbase.
 
 ### path()
 To know what path this reference points to.
