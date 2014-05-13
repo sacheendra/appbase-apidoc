@@ -12,13 +12,11 @@ Appbase.new(collection,[key])
 ```
 
 __collection__
-
 _String_
 
 Name of the collection
 
 __key__
-
 _(optional) String_
 
 Key given to the new object
