@@ -1,19 +1,31 @@
-# http://appbase.io/ API Documentation
+# appbase.io API Documentation
 
-__Read the functions like this:__
+## Appbase class
 
-__name(arg1: type, arg2: type, ..., ?optional-arg1: type): return-type__
+### Appbase.new()
 
-__"string1:string2" = string1 + ":" + string2__
-
-__?thing - means thing is optional__
-
-
-# Functions in Global scope
-
-
-## Appbase.new("collection:?key": String): Appbase reference
 This function takes the name of a collection and creates a new object in that collection. A reference to the newly created object is returned. The collection is created if it does not already exist. An optional key can attached to the collection string, in which case the object will be created with given key.
+
+#### Arguments
+```
+Appbase.new(collection,[key])
+```
+
+##### collection
+_String_, Name of the collection
+
+##### key
+_(optional) String_, Key given to the new object
+
+#### Returns
+
+An Appbase reference pointing to the new object 
+
+#### Example
+```javascript
+
+```
+
 
 
 ## Appbase.ref("collection:key": String): Appbase reference
