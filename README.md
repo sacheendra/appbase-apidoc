@@ -14,9 +14,9 @@ This is the primary interface to your Appbase database
 This constructor takes the URI of your database and returns an instance of the Datastore object which provides access to your database.
 
 ### Usage
-'''javascript
+```javascript
 new Datastore(URI)
-'''
+```
  -__URI__ `String`-
   The URI of your database provided by appbase.
 
@@ -27,9 +27,9 @@ An instance of the Datastore object, which is the main access point to your Appb
 This function is used to add a new set to the global object. This function takes the name of set to be added to the global object. If a set of the same name already exists, an error is passed to the callback.
 
 #### Usage
-'''javascript
+```javascript
 datastore.addSet(name, callback)
-'''
+```
  - __name__ `String` -
   Name of the set to be created.
  - __callback__ `function` -
@@ -39,9 +39,9 @@ datastore.addSet(name, callback)
 This function is used to listen on an existing set of the global object. This function takes the name of set to retrieve from the global object.
 
 #### Usage
-'''javascript
+```javascript
 datastore.onSet(name, callback)
-'''
+```
  - __name__ `String` -
   Name of the set to listen on.
  - __callback__ `function` -
