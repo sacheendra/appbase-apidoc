@@ -137,9 +137,9 @@ getTree(levels, [maxNumberOfElements], callback)
 This function is used to stop the reception of real-time updates to an object.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseObject.off()
-'''
+```
 
 
 ## Appbase Set
@@ -149,9 +149,9 @@ This object is the first argument of callbacks passed to onSet and addSet functi
 Used to get an item of the set by index. The index is an integer.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseSet.getItem(index, callback)
-'''
+```
  - __index__ `Integer` -
   The index of the Appbase Object to get.
  - __callback__ `function` -
@@ -161,9 +161,9 @@ AppbaseSet.getItem(index, callback)
 Used to set an item of the set by index. The index is an integer.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseSet.setItem(index, object, callback)
-'''
+```
  - __index__ `Integer` -
   The index of the Appbase Object to set.
  - __index__ `Integer` -
@@ -175,9 +175,9 @@ AppbaseSet.setItem(index, object, callback)
 Used to append an item to the end of the set. The index is an integer.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseSet.getItem(index, callback)
-'''
+```
  - __index__ `Integer` -
   The index of the Appbase Object to get.
  - __callback__ `function` -
@@ -190,9 +190,9 @@ Used to set an item of the set by index. The index is an integer.
 Used to delete an item of the set by index. The index is an integer. Them item itself is not deleted, only its reference is removed from the set.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseSet.deleteItem(index, callback)
-'''
+```
  - __index__ `Integer` -
   The index of the Appbase Object to delete.
  - __callback__ `function` -
@@ -202,9 +202,9 @@ AppbaseSet.deleteItem(index, callback)
 Used to turn of real-time updates on this Appbase Set.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseSet.off()
-'''
+```
 
 
 ## Appbase Counter
@@ -214,9 +214,9 @@ One of the available Appbase datatypes. All operations performed using this are 
 Used to increment the value of the counter by the specified integer. 1 if no value is passed.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseCounter.increment(num)
-'''
+```
  - __num__ `Integer` -
   Number to increment the counter by.
 
@@ -224,9 +224,9 @@ AppbaseCounter.increment(num)
 Used to decrement the value of the counter by the specified integer. 1 if no value is passed.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseCounter.decrement(num)
-'''
+```
  - __num__ `Integer` -
   Number to decrement the counter by.
 
@@ -234,9 +234,9 @@ AppbaseCounter.decrement(num)
 Used to obtain the current value of the counter.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseCounter.read()
-'''
+```
 
 #### Returns
 Return an integer which is the current value of the counter.
@@ -245,6 +245,6 @@ Return an integer which is the current value of the counter.
 This turns of real-time updates on the current Appbase Counter object.
 
 #### Usage
-'''javascript
+```javascript
 AppbaseCounter.off()
-'''
+```
