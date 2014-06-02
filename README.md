@@ -1,11 +1,11 @@
 # appbase.io API Documentation
 
 ## Appbase Datatypes
-  Integer
-  String
-  Appbase Object
-  Appbase Set
-  Appbase Counter
+  * Integer
+  * String
+  * Appbase Object
+  * Appbase Set
+  * Appbase Counter
 
 ## Appbase Datastore
 This is the primary interface to your Appbase database
@@ -17,7 +17,7 @@ This constructor takes the URI of your database and returns an instance of the D
 ```javascript
 new Datastore(URI)
 ```
- -__URI__ `String`-
+ - __URI__ `String` -
   The URI of your database provided by appbase.
 
 #### Returns
