@@ -1,5 +1,126 @@
 # appbase.io API Documentation
 
+All operations can return an error, an isError check should be done before any processing.
+
+## Identify
+
+### connect
+Requires an API key for the app.
+
+# This section requires refinement if things like google auth are used.
+## Auth
+
+### authenticate
+Requires a email and digest of the password and returns an object containing user information.
+
+### signup
+Requires a email and digest of the password. Any other information the app may want to store. Returns an object containing user info or an error.
+
+### forgot password
+An email is sent to the user containing a link to reset their password.
+# End of Refinements required.
+
+## User
+
+### get current user
+An object representing the current user.
+
+## Datastore
+
+### add set (name)
+Returns a set.
+
+### delete set (name)
+Deletes the set.
+
+### get set (name)
+Returns the set.
+
+### add ([name])
+Adds an object to the datastore.
+
+### on (path)
+Listens on an object from the datastore.
+
+## Object
+
+### get linked object/set (path)
+Returns the linked object/set.
+
+### update object (path, array of changed property-value pairs)
+Update the object in the database.
+
+### delete object (path)
+Deletes the object.
+
+### off (obj_id)
+Turns off listening.
+
+## Set
+
+### get linked object (path)
+Returns the linked object.
+
+### delete linked object (path)
+Returns the linked object.
+
+### append an object (path of the object)
+Append the object to the set.
+
+### set new linked object (path to set, path of the object)
+Returns the old object.
+
+### off (set_id)
+Stops listening on the set.
+
+## Counter
+
+### increment (path)
+Increments the counter.
+
+### decrement (path)
+Decrements the counter.
+
+### listen to this counter (path to the counter)
+Listens on the counter.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Appbase Datatypes
   * Integer
   * String
