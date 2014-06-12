@@ -323,7 +323,8 @@ parent()
 ```javascript
 on('value',options,callback)
 ```
-options is an object with properties:
+options is an object with properties.
+
  - __levels__ `Number` - include data of referenced objects up to this depth 
  - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level. eg. levels:3, limits:[5,2,2] = total objects included: 5*2*2
 
@@ -335,6 +336,7 @@ get existing children, listen to new ones
 on('value',options,callback)
 ```
 options is an object with properties:
+
  - __levels__ `Number` - include data of referenced objects up to this depth 
  - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level.
  - __startAt__ `Number` - index to start with
