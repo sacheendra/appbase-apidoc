@@ -119,253 +119,281 @@ Listens on the counter.
 
 
 
-
+# Appbase clientside JS API
 
 ## Appbase Datatypes
   * Integer
   * String
-  * Appbase Object
-  * Appbase Set
-  * Appbase Counter
+  * Object
 
-## Appbase Datastore
-This is the primary interface to your Appbase database
 
-### new Datastore
-This constructor takes the URI of your database and returns an instance of the Datastore object which provides access to your database.
+## Appbase Global
 
-### Usage
+### Appbase.new()
+
+This function takes the name of a collection and creates a new object in that collection. A reference to the newly created object is returned. The collection is created if it does not already exist. An optional key can attached to the collection string, in which case the object will be created with given key.
+
+#### Usage
 ```javascript
-new Datastore(URI)
+Appbase.new(collection,[key])
 ```
- - __URI__ `String` -
-  The URI of your database provided by appbase.
+ - __collection__ `String` -
+  Name of the collection
+ - __key__ _(optional)_ `String` -
+  Key given to the new object
 
 #### Returns
-An instance of the Datastore object, which is the main access point to your Appbase database.
+An _Appbase_ reference pointing to the new object 
 
-### addSet
-This function is used to add a new set to the global object. This function takes the name of set to be added to the global object. If a set of the same name already exists, an error is passed to the callback.
-
-#### Usage
+#### Example
 ```javascript
-datastore.addSet(name, callback)
+var ab = Appbase.new('User','andy_dufresne');
 ```
- - __name__ `String` -
-  Name of the set to be created.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an empty set for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
 
-### onSet
-This function is used to listen on an existing set of the global object. This function takes the name of set to retrieve from the global object.
+### Appbase.ref()
+
+This function takes a collection-key pair as a string of the format "collection-name:key" and returns a reference to the object if it exists. Returns an error otherwise.
 
 #### Usage
 ```javascript
-datastore.onSet(name, callback)
-```
- - __name__ `String` -
-  Name of the set to listen on.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an Appbase Set set for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### add
-This function is used to add a new object to the database. This function takes the name of a set in global object and/or a key, both of which are optional. If nothing is specified, a uuid will be assigned as the key of the object.
-
-#### Usage
-```javascript
-datastore.add([globalSet,[key]], callback)
-```
- - __globalSet__ _(optional)_ `String` -
-	Name of the set in the global object.
- - __key__ _(optional)_ `String` -
-	Key given to the new object.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the newly made Appbase object for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### on
-This function is used to listen on an existing object. This function takes a path to an object and an error occurs if the object does not exist.
-
-#### Usage
-```javascript
-datastore.on(path, callback)
+Appbase.ref(path)
 ```
  - __path__ `String` -
-	Path to the object in Appbase.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the Appbase object which resides at the path for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null. 
+  path to the object in Appbase
 
+#### Returns
+An `Appbase` reference pointing to the object located at given path 
+
+#### Example
+```javascript
+var ab = Appbase.ref('User:andy_dufresne/Tool:rock_hammer');
+```
+
+### Appbase.signup()
+
+#### Usage
+```javascript
+Appbase.signup(mail,password,callback)
+```
+ - __mail__ `String`
+ - __password__ `String`
+ - __callback__ `Function` - with arg error
+
+### Appbase.signin()
+
+#### Usage
+```javascript
+Appbase.signin(email,password,callback)
+```
+ - __mail__ `String`
+ - __password__ `String`
+ - __callback__ `Function` - with arg error
+
+### Appbase.signout()
+
+#### Usage
+```javascript
+Appbase.signout()
+```
+
+### Appbase.onAuth()
+Register a callback when the user is authenticated.
+
+#### Usage
+```javascript
+Appbase.onAuth(callback)
+```
+argument given to callback is an object with following properties.
+
+ - __user__ `Object` - with properties: email
+ - __isNew__ `Boolean` - whether the user just signed up
+
+### Appbase.onUnauth()
+Register a callback when the user is unauthenticated.
+
+#### Usage
+```javascript
+Appbase.onUnauth(callback)
+```
+argument given to callback is an object with following properties.
+
+ - __isSessionExpired__ `Boolean` - whether the session expiration caused unauthentication
+ - __isSignedOut__ `Boolean` - whether the Appbase.signout() was called
+ - __isSigninRequired__ `Boolean` - whether the user was never logged in
+
+### Appbase.sendPasswordResetMail()
+
+#### Usage
+```javascript
+Appbase.sendPasswordResetMail(mail,callback)
+```
+
+### Appbase.changePassword()
+
+#### Usage
+```javascript
+Appbase.changepassword(oldPwd,newPwd,callback)
+```
+
+### Appbase.transaction()
+All operations either succeed, or fail.
+
+#### Usage
+```javascript
+Appbase.transaction(function(){
+  operations;
+}, callback)
+```
+
+callback parameter is an object with these properties:
+
+ - __error__ `String` 
+ - __AbRef__ `Appbase Object`: Reference to Appbase object which caused the error
 
 ## Appbase Object
-This object is the first argument of callbacks passed to on and add functions of the Datastore objects.
+Represents a reference to an object
 
-### setProperty
-This function is used to set a property of the Appbase object. The function takes the name of the property as the first argument and the value as the second argument. A callback is taken as the last argument.
-
-#### Usage
-```javascript
-AppbaseObject.setProperty(name, value, callback)
-``` 
- - __name__ `String` -
-  Name of the property.
- - __value__ `String` -
-  Value to be assigned to the property. A value can be any valid Appbase Datatype.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the changed Appbase object for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### deleteProperty
-This function is used to delete a property from an Appbase object. It takes the name of a property and a callback.
+### path()
+To know what path this reference points to.
 
 #### Usage
 ```javascript
-AppbaseObject.deleteProperty(name, callback)
-```
- - __name__ `String` -
-  Name of the property to be deleted.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the changed Appbase object for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### getProperty
-This function is used to get the value of a property. It takes the name of the property.
-
-#### Usage
-```javascript
-AppbaseObject.getProperty(name)
-```
- - __name__ `String` -
-  Name of the property to get.
-
-#### Returns
-An Appbase Datatype which is the value of the property. A promise if the Appbase Datatype contained is an Object or a Set. An error object if the property does not exist.
-The promise has a then function which takes a callback of the following type.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the Appbase Datatype(Set or Object) for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### getTree
-This function is used to retrieve a tree of objects with the current Appbase Object as root.
-
-#### Usage
-```javascript
-getTree(levels, [maxNumberOfElements], callback)
-```
- - __levels__ `Integer` -
-  Depth of levels by which nested objects will be returned
- - __maxNumberOfElements__ _(optional)_ `Integer` -
-  Maximum number of node is the tree which is returned. This takes priority over levels. Nodes are counted in a breadth-first order from smaller to larger in the standard ordering.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an Appbase Tree for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### off
-This function is used to stop the reception of real-time updates to an object.
-
-#### Usage
-```javascript
-AppbaseObject.off()
-```
-
-
-## Appbase Set
-This object is the first argument of callbacks passed to onSet and addSet functions of the Datastore objects.
-
-### getItem
-Used to get an item of the set by index. The index is an integer.
-
-#### Usage
-```javascript
-AppbaseSet.getItem(index, callback)
-```
- - __index__ `Integer` -
-  The index of the Appbase Object to get.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an Appbase Object for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### setItem
-Used to set an item of the set by index. The index is an integer.
-
-#### Usage
-```javascript
-AppbaseSet.setItem(index, object, callback)
-```
- - __index__ `Integer` -
-  The index of the Appbase Object to set.
- - __index__ `Integer` -
-  The Appbase Object to be placed at the index.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an Appbase Set with the new item for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### appendItem
-Used to append an item to the end of the set. The index is an integer.
-
-#### Usage
-```javascript
-AppbaseSet.getItem(index, callback)
-```
- - __index__ `Integer` -
-  The index of the Appbase Object to get.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is an Appbase Object for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### setItem
-Used to set an item of the set by index. The index is an integer.
-
-### deleteItem
-Used to delete an item of the set by index. The index is an integer. Them item itself is not deleted, only its reference is removed from the set.
-
-#### Usage
-```javascript
-AppbaseSet.deleteItem(index, callback)
-```
- - __index__ `Integer` -
-  The index of the Appbase Object to delete.
- - __callback__ `function` -
-  callback is a function of the form callback(result, error). The result is the modified Appbase Set for success and a null value for error. If an error occurs, error object is passed as second argument, otherwise it is null.
-
-### off
-Used to turn of real-time updates on this Appbase Set.
-
-#### Usage
-```javascript
-AppbaseSet.off()
-```
-
-
-## Appbase Counter
-One of the available Appbase datatypes. All operations performed using this are transactional in nature.
-
-### increment
-Used to increment the value of the counter by the specified integer. 1 if no value is passed.
-
-#### Usage
-```javascript
-AppbaseCounter.increment(num)
-```
- - __num__ `Integer` -
-  Number to increment the counter by.
-
-### decrement
-Used to decrement the value of the counter by the specified integer. 1 if no value is passed.
-
-#### Usage
-```javascript
-AppbaseCounter.decrement(num)
-```
- - __num__ `Integer` -
-  Number to decrement the counter by.
-
-### read
-Used to obtain the current value of the counter.
-
-#### Usage
-```javascript
-AppbaseCounter.read()
+path()
 ```
 
 #### Returns
-Return an integer which is the current value of the counter.
+`String` - The path.
 
-### off
-This turns of real-time updates on the current Appbase Counter object.
+
+### set()
+Sets value for a property
 
 #### Usage
 ```javascript
-AppbaseCounter.off()
+set(property, value/object,options,[callback])
 ```
+ - __property__ `String`
+ - __value__ `String/Boolean/Number/null/undefined` - Giving null or undefined as the value removes the property
+ - __options__ `Object` - with properties: index
+ - __callback__ - with arg error
+
+#### Returns
+The same `Appbase` reference, to allow chaining of set methods
+
+
+### setIndexOf()
+
+#### Usage
+```javascript
+setIndexOf(property,index)
+```
+
+#### Returns
+The same `Appbase` reference, to allow chaining of set methods
+
+### child()
+Get reference to a child object
+
+#### Usage
+```javascript
+child(property)
+```
+Throws error if child doesn't exist.
+
+### childAt()
+Get reference to a child object
+
+#### Usage
+```javascript
+childAt(index)
+```
+Throws error if index doesn't exist.
+
+### parent()
+Reference to parent object in the current path of the entity
+
+#### Usage
+```javascript
+parent()
+```
+
+### on('value')
+
+#### Usage
+```javascript
+on('value',options,callback)
+```
+options is an object with properties:
+ - __levels__ `Number` - include data of referenced objects up to this depth 
+ - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level. eg. levels:3, limits:[5,2,2] = total objects included: 5*2*2
+
+### on('child')
+get existing children, listen to new ones
+
+#### Usage
+```javascript
+on('value',options,callback)
+```
+options is an object with properties:
+ - __levels__ `Number` - include data of referenced objects up to this depth 
+ - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level.
+ - __startAt__ `Number` - index to start with
+ - __overflow__ `Function` - when level one limit is hit, objects from the bottom are as argument to this function. - This is used for removing objects from the view automatically
+
+### on('child_remove')
+listen to removal of children
+
+#### Usage
+```javascript
+on('child_remove',callback)
+```
+
+### off()
+#### Usage
+```javascript
+off(event)
+```
+ - __event__ `String` -
+
+### push()
+
+#### Usage
+```javascript
+push(AbRef,callback)
+```
+ - __AbRef__ - `Appbase Object`: Object to push at the top, property name will be uuid of AbRef
+
+
+### pushNew()
+
+#### Usage
+```javascript
+pushNew(collection,callback)
+```
+ - __collection__ - `String`: create a new object of the collection,push it to the top and return its reference
+
+
+### enqueue()
+
+#### Usage
+```javascript
+enqueue(AbRef,callback)
+```
+ - __AbRef__ - `Appbase Object`: Object to put at the bottom, property name will be uuid of AbRef
+
+
+### enqueueNew()
+
+#### Usage
+```javascript
+enqueueNew(collection,callback)
+```
+ - __collection__ - `String`: create a new object of the collection,enqueue it at the bottom and return its reference
+
+### atomic()
+
+#### Usage
+[https://www.firebase.com/docs/javascript/firebase/transaction.html][1]
+
+
+  [1]: https://www.firebase.com/docs/javascript/firebase/transaction.html
