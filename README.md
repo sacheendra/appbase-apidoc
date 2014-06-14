@@ -5,8 +5,8 @@
 IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discontinuous ordering)
 
 ## Datatypes
+  * Number
   * String
-  * Counter
   * Object
 
 ## Appbase Global
@@ -18,16 +18,56 @@ IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discon
 ### Appbase.add(namespace, [primary_key/appbase reference/appbase object], [callback(err, reference)])
   NOTE: Returns Appbase Reference
 
+### Appbase.transaction(objs, func(objs,done), callback(err))
+  NOTE: func is a function like the firebase one, except that 'done' should be called after every appbase operation succeeds.
+  NOTE2: objs is an arr
+  NOTE3: The object inside the function should be updated in realtime. i.e., if the object has changed after the transaction was issued, The new value of object should be used.
+
+#### Example
+### Correct
+'''javascript
+func(objs, done) {
+  objs[0].insert(..,..,done)
+}
+'''
+'''javascript
+func(objs, done) {
+  objs[0].insert(..,..,callback(err, obj) {
+
+    done(err, obj)
+  })
+}
+'''
+'''javascript
+func(objs, done) {
+  objs[0].insert('counter1',Object.get('counter1')+1,done)
+}
+'''
+### Wrong
+These aren't transactions
+'''javascript
+func(objs, done) {
+  someobj.insert(..,..,..)
+  done()
+}
+'''
+'''javascript
+func(objs, done) {
+  objs[0].insert(..,..,..)
+  done(null, {})
+}
+'''
+
 ## Appbase Reference
 
-### Reference.on('value', [callback(err, Object)])
+### Reference.on('value', callback(err, Object))
   NOTE: Fired only when self is changed.
 
-### Reference.on('object_changed', options, [callback(err, Object which was changed)])
+### Reference.on('object_changed', options, callback(err, Object which was changed))
 
-### Reference.on('object_added', options, [callback(err, Object which was added)])
+### Reference.on('object_added', options, callback(err, Object which was added))
 
-### Reference.on('object_removed', options, [callback(err, Object which was removed)])
+### Reference.on('object_removed', options, callback(err, Object which was removed))
 
 ## Appbase Object
 
@@ -52,11 +92,3 @@ IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discon
 ### Object.remove(property_name, [callback(err, changed_obj)])
 
 ### Object.deleteSelf([callback(err)])
-
-## Appbase Counter
-
-### Counter.increment()
-
-### Counter.decrement()
-
-### Counter.listen(callback(value))
