@@ -34,7 +34,7 @@ IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discon
 ### Object.get(property_name)
 
 #### Returns
-  The string/counter if it is one of them. A promise which resolves to the linked object if it is a link.
+  The string/counter if it is one of them. An Appbase Reference to the linked object.
 
 ### Object.insert(property_name, string/counter/appbase object/appbase ref, [index], [callback(err, changed_obj)])
   NOTE: The property is inserted at the index. i.e., Things after that are moved back by 1.
