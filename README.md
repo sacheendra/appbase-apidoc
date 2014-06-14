@@ -15,8 +15,8 @@ IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discon
 
 ### Appbase.createCounter()
 
-### Appbase.add(namespace, [primary_key], [callback(err, path)])
-  NOTE: Returns path which can be used in Appbase.listen().
+### Appbase.add(namespace, [primary_key/appbase reference/appbase object], [callback(err, reference)])
+  NOTE: Returns Appbase Reference
 
 ## Appbase Reference
 
