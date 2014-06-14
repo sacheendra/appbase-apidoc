@@ -25,38 +25,38 @@ IMPORTANT: Accepted values for index are -1 to (to decide wether to allow discon
 
 #### Example
 ### Correct
-'''javascript
+```javascript
 func(objs, done) {
   objs[0].insert(..,..,done)
 }
-'''
-'''javascript
+```
+```javascript
 func(objs, done) {
   objs[0].insert(..,..,callback(err, obj) {
 
     done(err, obj)
   })
 }
-'''
-'''javascript
+```
+```javascript
 func(objs, done) {
   objs[0].insert('counter1',Object.get('counter1')+1,done)
 }
-'''
+```
 ### Wrong
 These aren't transactions
-'''javascript
+```javascript
 func(objs, done) {
   someobj.insert(..,..,..)
   done()
 }
-'''
-'''javascript
+```
+```javascript
 func(objs, done) {
   objs[0].insert(..,..,..)
   done(null, {})
 }
-'''
+```
 
 ## Appbase Reference
 
