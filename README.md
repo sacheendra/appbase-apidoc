@@ -3,9 +3,10 @@
 # Appbase clientside JS API
 
 TODO: 
-1) How to change roles
-2) Transactions
-3) What happens while listning into levels
+
+ 1. How to change roles
+ 2. Transactions
+ 3. What happens while listning into levels
 
 ## Datatypes 
 This doesn't change. Let the developer set Boolean/Number in a property. We can store it as string on the server, that's fine.
