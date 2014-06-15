@@ -157,12 +157,14 @@ Sets/inserts value for a property
 
 #### Usage
 ```javascript
-insert(property, value, [index], [callback])
+insert([property], value, [index], [callback])
 ```
- - __property__ `String`
+ - __property__ _(optional)_ `String`
  - __value__ `String/Boolean/Number/null/undefined/Appbase Reference` - Giving null or undefined as the value removes the property
  - __index__ `Number` - The property is inserted at the index. i.e., Things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
  - __callback__ - with args: (err,new obj snapshot)
+
+If no __property__ is given while inserting an _Appbase object_, object's __uuid__ will be set as the __property__ name
 
 #### Returns
 The same `Appbase` reference, to allow chaining of set methods
