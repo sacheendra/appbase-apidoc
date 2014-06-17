@@ -85,13 +85,13 @@ insert([property], value, [index], [callback])
 ```
  - __property__ _(optional)_ `String`
  - __value__ `String/Number/Appbase Reference` - Giving null or undefined as the value removes the property
- - __index__ `Number` - The property is inserted at the index. i.e., Things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
+ - __index__ `Number` - The property is inserted at the index, things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
  - __callback__ - with args: (err,new obj snapshot)
 
 If no __property__ is given while inserting an _Appbase object_, object's __uuid__ will be set as the __property__ name
 
 #### Returns
-The same `Appbase` reference, to allow chaining of set methods
+The same `Appbase` reference, to allow chaining of methods
 
 
 #### Example
@@ -106,7 +106,6 @@ userRef.insert('rock_hammer',toolRef);
  * the path: '/user/andy_dufresne/rock_hammer', 
  * and its size with: '/user/andy_dufresne/rock_hammer/size'
  */
- 
 ```
 
 ### remove()
@@ -120,7 +119,7 @@ remove(property[callback])
  - __callback__ - with args: (err,new obj snapshot)
 
 #### Returns
-The same `Appbase` reference, to allow chaining of set methods
+The same `Appbase` reference, to allow chaining of methods
 
 ### destroy()
 Delete the whole object, references to this object in other objects will be removed as well.
@@ -131,56 +130,125 @@ destroy()
 ```
 
 ### on('value')
+Reading of data from _Appbase_ happens through listeing to events on _Appbase References_. This event listens to changes in the value at a path. 
+
+It immediately fires the event with existing value, when listening for the first time, then fires again whenever the value is changed. 
 
 #### Usage
 ```javascript
-on('value',options,callback)
+on('value',[options],callback)
 ```
-options is an object with properties.
+ - __options__ is an object with properties:
+     - __levels__ `Number` - include data of referenced objects up to this depth 
+     - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level. eg. levels:3, limits:[5,2,2] = total objects included: 5 x 2 x 2 = 20.
+ - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
- - __levels__ `Number` - include data of referenced objects up to this depth 
- - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level. eg. levels:3, limits:[5,2,2] = total objects included: 5*2*2
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
 
-callback will be passed an Appbase Snapshot Object.
+#### Example
+```javascript
+var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+/* Existing data at this location: {size:12}
+ */
+
+toolRef.on('value',function(snapshot){
+    console.log(snapshot.val().size);
+})
+
+seTimeout(function(){
+    toolRef.insert('size',13);
+},2000);
+
+/* Immediately logs '12' - the existing value.
+ * After 2 secs, it logs '13'.
+ */
+```
 
 ### on('object_added')
-Get existing properties, listen to new ones
+Get existing objects/properties inserted at a location, and listen to new ones.
 
 #### Usage
 ```javascript
-on('object_added',options,callback)
+on('object_added',[options],callback)
 ```
-options is an object with properties:
 
- - __levels__ `Number` - include data of referenced objects up to this depth 
- - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level.
- - __startAt__ `Number` - index to start with
- - __overflow__ (ignore) `Function` - when level one limit is hit, objects from the bottom are as argument to this function. - This is used for removing objects from the view automatically
+ - `options` is an object with properties:
+     - __levels__ `Number` - include data of referenced objects up to this depth 
+     - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level.
+     - __startAt__ `Number` - index to start with
+ - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
-callback will be passed an Appbase Snapshot Object.
+
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
+
+
+#### Example
+```javascript
+var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+/* Existing data at this location: {size:12}
+ */
+
+toolRef.on('object_added',function(snapshot){
+    console.log(snapshot.name(),':',snapshot.val());
+})
+
+seTimeout(function(){
+    toolRef.insert('usage','shaping chess pieces');
+},2000);
+
+/* Immediately logs 'size : 12' - existing data.
+ * After 2 secs, it logs 'usage : shaping chess pieces'.
+ */
+```
 
 ### on('object_removed')
-listen to removal of objects
+Listen to removal of objects/properties. 
 
 #### Usage
 ```javascript
-on('child_removed',options,callback)
+on('child_removed',[options],callback)
 ```
+ - __callback__ `Function` - with snapshot to the removed object. 
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
 
 ### on('object_changed')
-listen to changes of objects
+Whenever an the value/index of an existing property is changed, this event is called. It doesn't log the existing value.
 
 #### Usage
 ```javascript
-on('child_changed',options,callback)
+on('child_changed',[options],callback)
 ```
 
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
+
+#### Example
+```javascript
+var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+
+// Existing data at this location: {size:12,usage:'shaping chess pieces'}
+
+toolRef.on('object_changed',function(snapshot){
+    var text = snapshot.name() + ' changed from ' + snapshot.prevVal() + ', to ' + snapshot.val();
+    console.log(text);
+})
+
+toolRef.insert('usage','prison break');
+
+// Logs 'usage changed from shaping chess pieces to prision break'.
+```
 ### off()
 #### Usage
 ```javascript
 off([event])
 ```
  - __event__ _(optional)_ `String` - All listeners will be cancelled if not specified.
+
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
 
 ### strongInsert()
 A strongly consistent insert operation. No operations will take place on the property 
@@ -197,7 +265,7 @@ insert([property], apply, [index], [callback])
 If no __property__ is given while inserting an _Appbase object_, object's __uuid__ will be set as the __property__ name
 
 #### Returns
-The same `Appbase` reference, to allow chaining of set methods
+The same `Appbase` reference, to allow chaining of methods
 
 
 ## Appbase Snapshot Object
