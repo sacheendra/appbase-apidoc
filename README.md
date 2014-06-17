@@ -12,23 +12,35 @@
 
 ### Appbase.add()
 
-This function takes the name of a collection and creates a new object in that collection. A reference to the newly created object is returned. The collection is created if it does not already exist. An optional key can attached to the collection string, in which case the object will be created with given key.
+Adds a new object in _Appbase_. This is the way to create a new object in a _collection_. A _collection_ is a _namespace_, on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules.
 
 #### Usage
 ```javascript
 Appbase.add(collection,[key],callback)
 ```
- - __collection__ `String` -
-  Name of the collection
- - __key__ _(optional)_ `String` -
-  Key given to the new object
+ - __collection__ `String` - Name of the collection
+ - __key__ _(optional)_ `String` - key given to the new object
  - __callback__ `Function` - err
+
+The _collection_ is created if it does not already exist. Optionally, A _unique key_ can be given to the the object, otherwise a unique id will be given automatically. The key should not contain '/' character. 
+
+If the object with the given key already exists, reference to the existing object will be returned.
+
+The error may occur if this operation is not permitted, and there are two such cases:
+ 1. Collection doesn't exist and creation of new collections is not permitted.
+ 2. For the given collection, creating new objects is not permitted.
+
 #### Returns
-An _Appbase_ reference pointing to the new object 
+An _Appbase_ reference pointing to the new object.
+
 
 #### Example
 ```javascript
-var myDataRef = Appbase.new('User','andy_dufresne',callback);
+var myDataRef = Appbase.add('User','andy_dufresne',function(error){
+    if(!error){
+        console.log('object created.')
+    }
+);
 ```
 
 ### Appbase.ref()
@@ -41,7 +53,7 @@ Appbase.ref(path)
   path to the object in Appbase
 
 #### Returns
-An `Appbase` reference pointing to the object located at given path 
+An `Appbase` reference pointing to the object located at the given path. 
 
 #### Example
 ```javascript
@@ -206,23 +218,23 @@ ref()
 #### Returns
 The Appbase Reference for this object.
 
-### getIndex()
+### index()
 Returns the index of this object .
 
 #### Usage
 ```javascript
-getIndex()
+index()
 ```
 
 #### Returns
 The Appbase Reference for this object.
 
-### getPrevIndex()
+### prevIndex()
 Returns the index of this object before this change was received.
 
 #### Usage
 ```javascript
-getIndex()
+prevIndex()
 ```
 
 #### Returns
