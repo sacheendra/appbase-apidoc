@@ -12,23 +12,23 @@
 
 ### Appbase.add()
 
-Adds a new object in _Appbase_. This is the way to create a new object in a _collection_. A _collection_ is a _namespace_, on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules.
+Adds a new object in _Appbase_. This is the way to create a new object in a _namespace_. A _namespace_ is a collection of objects on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules. An existing object can also be added to another _namespace_. A link to the object is placed in the namespace, i.e., a new object is not created. All updates to an object will reflect when the object is accessed through any _namespace_.
 
 #### Usage
 ```javascript
-Appbase.add(collection,[key],callback)
+Appbase.add(namespace,[key/reference],callback)
 ```
- - __collection__ `String` - Name of the collection
- - __key__ _(optional)_ `String` - key given to the new object
+ - __namespace__ `String` - Name of the namespace
+ - __key/reference__ _(optional)_ `String/Appbase Reference` - key given to the new object/an Appbase Reference to an existing object
  - __callback__ `Function` - err
 
-The _collection_ is created if it does not already exist. Optionally, A _unique key_ can be given to the the object, otherwise a unique id will be given automatically. The key should not contain '/' character. 
+The _namespace_ is created if it does not already exist. Optionally, A _unique key_ can be given to the the object, otherwise a unique id will be given automatically. The key should not contain '/' character. 
 
 If the object with the given key already exists, reference to the existing object will be returned.
 
 The error may occur if this operation is not permitted, and there are two such cases:
- 1. Collection doesn't exist and creation of new collections is not permitted.
- 2. For the given collection, creating new objects is not permitted.
+ 1. Namespace doesn't exist and creation of new namespaces is not permitted.
+ 2. For the given namespace, creating new objects is not permitted.
 
 #### Returns
 An _Appbase Reference_ pointing to the new/existing object.
@@ -50,7 +50,7 @@ An _Appbase Reference_ allows operating on an object stored in _Appbase_ at some
 Appbase.ref(path)
 ```
  - __path__ `String` - path to the object in Appbase
-A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The first element of the path represents a collection, and following elements are objects. 
+A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The first element of the path represents a namespace, and following elements are objects. 
 
 #### Returns
 An `Appbase` reference pointing to the object located at the given path. 
@@ -60,7 +60,7 @@ An `Appbase` reference pointing to the object located at the given path.
 var myDataRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `collection : 'user'` with `key : andy_dufresne`.
+The _path_, `'/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`.
 
 ## Appbase Reference
 Operations, such as read/write on objects, located at a path can be done using Appbase References.
@@ -97,7 +97,7 @@ The same `Appbase` reference, to allow chaining of set methods
 #### Example
 ```javascript
 var userRef = Appbase.ref('/user/andy_dufresne');
-var toolRef = Appbase.add('tool'); // new object of the collection 'tool'
+var toolRef = Appbase.add('tool'); // new object of the namespace 'tool'
 
 toolRef.insert('size',12);
 userRef.insert('rock_hammer',toolRef);
@@ -198,6 +198,22 @@ If no __property__ is given while inserting an _Appbase object_, object's __uuid
 
 #### Returns
 The same `Appbase` reference, to allow chaining of set methods
+
+#### Example
+```javascript
+var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+
+toolRef.insert('size',function(prevSize) {
+  return prevSize + 1;
+});
+
+/* The size of Dufresne's rock hammer can be increased
+ * consistently (no changes will be lost). If 3 people
+ * the size by 1 each simultaneously, the size will
+ * increase by 3.
+ */
+ 
+```
 
 
 ## Appbase Snapshot Object
