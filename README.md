@@ -31,8 +31,7 @@ The error may occur if this operation is not permitted, and there are two such c
  2. For the given collection, creating new objects is not permitted.
 
 #### Returns
-An _Appbase_ reference pointing to the new object.
-
+An _Appbase Reference_ pointing to the new/existing object.
 
 #### Example
 ```javascript
@@ -44,24 +43,27 @@ var myDataRef = Appbase.add('User','andy_dufresne',function(error){
 ```
 
 ### Appbase.ref()
+An _Appbase Reference_ allows operating on an object stored in _Appbase_ at some path. This method creates reference pointing to a path. 
 
 #### Usage
 ```javascript
 Appbase.ref(path)
 ```
- - __path__ `String` -
-  path to the object in Appbase
+ - __path__ `String` - path to the object in Appbase
+A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The first element of the path represents a collection, and following elements are objects. 
 
 #### Returns
 An `Appbase` reference pointing to the object located at the given path. 
 
 #### Example
 ```javascript
-var myDataRef = Appbase.ref('User/andy_dufresne/rock_hammer');
+var myDataRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
 ```
 
+The _path_, `'/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `collection : 'user'` with `key : andy_dufresne`.
+
 ## Appbase Reference
-Represents a reference to an object
+Operations, such as read/write on objects, located at a path can be done using Appbase References.
 
 ### path()
 To know what path this reference points to.
@@ -75,7 +77,7 @@ path()
 `String` - The path.
 
 ### insert()
-Sets/inserts value for a property
+Sets/inserts value for a property. This operation creates a new accessible path, which can be used to create an _Appbase Reference_.
 
 #### Usage
 ```javascript
@@ -91,6 +93,22 @@ If no __property__ is given while inserting an _Appbase object_, object's __uuid
 #### Returns
 The same `Appbase` reference, to allow chaining of set methods
 
+
+#### Example
+```javascript
+var userRef = Appbase.ref('/user/andy_dufresne');
+var toolRef = Appbase.add('tool'); // new object of the collection 'tool'
+
+toolRef.insert('size',12);
+userRef.insert('rock_hammer',toolRef);
+
+/* Now Dufresne's rock hammer can be accessed directly with 
+ * the path: '/user/andy_dufresne/rock_hammer', 
+ * and its size with: '/user/andy_dufresne/rock_hammer/size'
+ */
+ 
+```
+
 ### remove()
 removes a property
 
@@ -105,7 +123,7 @@ remove(property[callback])
 The same `Appbase` reference, to allow chaining of set methods
 
 ### destroy()
-Delete the whole object, references to this object in other objects will be deleted on read.
+Delete the whole object, references to this object in other objects will be removed as well.
 
 #### Usage
 ```javascript
@@ -126,7 +144,7 @@ options is an object with properties.
 callback will be passed an Appbase Snapshot Object.
 
 ### on('object_added')
-get existing properties, listen to new ones
+Get existing properties, listen to new ones
 
 #### Usage
 ```javascript
@@ -252,8 +270,6 @@ exportVal()
 The value of the object as a JavaScript object with ordering data.
 
 ### name()
-Returns the property name with which the object was stored in the current path.
-
 #### Usage
 ```javascript
 name()
