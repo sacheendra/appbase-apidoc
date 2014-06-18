@@ -271,7 +271,7 @@ The same `Appbase` reference, to allow chaining of methods
 ```javascript
 var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
-toolRef.insert('size',function(prevSize) {
+toolRef.strongInsert('size',function(prevSize) {
   return prevSize + 1;
 });
 
@@ -285,7 +285,7 @@ toolRef.insert('size',function(prevSize) {
 
 
 ## Appbase Snapshot Object
-This is will be passed to callbacks in all event firing.
+_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. They can't be modified and will never change. To modify data, use an Appbase reference. This is will be passed to callbacks in all event firing.
 
 ### val()
 Returns the data in the form of a JavaScript object.
