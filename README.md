@@ -57,10 +57,10 @@ An `Appbase` reference pointing to the object located at the given path.
 
 #### Example
 ```javascript
-var myDataRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+var myDataRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`.
+The _path_, `'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`.
 
 ## Appbase Reference
 Operations, such as read/write on objects, located at a path can be done using Appbase References.
@@ -96,15 +96,15 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var userRef = Appbase.ref('/user/andy_dufresne');
+var userRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne');
 var toolRef = Appbase.add('tool'); // new object of the namespace 'tool'
 
 toolRef.insert('size',12);
 userRef.insert('rock_hammer',toolRef);
 
 /* Now Dufresne's rock hammer can be accessed directly with 
- * the path: '/user/andy_dufresne/rock_hammer', 
- * and its size with: '/user/andy_dufresne/rock_hammer/size'
+ * the path: 'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer', 
+ * and its size with: 'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer/size'
  */
 ```
 
@@ -148,7 +148,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 /* Existing data at this location: {size:12}
  */
 
@@ -186,7 +186,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 /* Existing data at this location: {size:12}
  */
 
@@ -227,7 +227,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
 // Existing data at this location: {size:12,usage:'shaping chess pieces'}
 
@@ -269,7 +269,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
 toolRef.insert('size',function(prevSize) {
   return prevSize + 1;
