@@ -37,7 +37,7 @@ An _Appbase Reference_ pointing to the new/existing object.
 ```javascript
 var myDataRef = Appbase.add('User','andy_dufresne',function(error){
     if(!error){
-        console.log('object created.')
+        console.log('object added.')
     }
 );
 ```
@@ -50,17 +50,17 @@ An _Appbase Reference_ allows operating on an object stored in _Appbase_ at some
 Appbase.ref(path)
 ```
  - __path__ `String` - path to the object in Appbase
-A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The first element of the path represents a namespace, and following elements are objects. 
+A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects. 
 
 #### Returns
 An `Appbase` reference pointing to the object located at the given path. 
 
 #### Example
 ```javascript
-var myDataRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var myDataRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`.
+The _path_, `'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `property : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
 
 ## Appbase Reference
 Operations, such as read/write on objects, located at a path can be done using Appbase References.
@@ -96,15 +96,15 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var userRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne');
+var userRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne');
 var toolRef = Appbase.add('tool'); // new object of the namespace 'tool'
 
 toolRef.insert('size',12);
 userRef.insert('rock_hammer',toolRef);
 
 /* Now Dufresne's rock hammer can be accessed directly with 
- * the path: 'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer', 
- * and its size with: 'shawshank.api.appbase.io/user/andy_dufresne/rock_hammer/size'
+ * the path: 'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer', 
+ * and its size with: 'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer/size'
  */
 ```
 
@@ -148,7 +148,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 /* Existing data at this location: {size:12}
  */
 
@@ -186,7 +186,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 /* Existing data at this location: {size:12}
  */
 
@@ -227,7 +227,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
 // Existing data at this location: {size:12,usage:'shaping chess pieces'}
 
@@ -269,7 +269,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
 toolRef.strongInsert('size',function(prevSize) {
   return prevSize + 1;
@@ -285,7 +285,7 @@ toolRef.strongInsert('size',function(prevSize) {
 
 
 ## Appbase Snapshot Object
-_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. They can't be modified and will never change. To modify data, use an Appbase reference. This is will be passed to callbacks in all event firing.
+_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference. 
 
 ### val()
 Returns the data in the form of a JavaScript object.
