@@ -98,11 +98,10 @@ A strongly consistent _set_ operation. It allows you create consistent aggregato
 
 #### Usage
 ```javascript
-strongSet([property], apply, [index], [callback])
+strongSet(property, apply, [callback])
 ```
- - __property__ _(optional)_ `String`
- - __apply__ `function` - The function should return which returns String/Number/Boolean. The old value is passed in as an argument to the function.
- - __index__ `Number` - The property is inserted at the index. i.e., Things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
+ - __property__ `String`
+ - __apply__ `function` - The function should return which returns String/Number/Boolean. The old value is passed in as an argument to the function
  - __callback__ - with args: (err,new obj snapshot)
 
 #### Returns
@@ -125,7 +124,7 @@ toolRef.strongSet('size',function(prevSize) {
 ```
 
 ### unset()
-Removes a property's value.
+Removes a property.
 
 #### Usage
 ```javascript
@@ -453,7 +452,7 @@ Returns the index of this object before this change was received.
 prevIndex()
 ```
 
-#### link()
+### link()
 Snapshot object of the link.  
 Applicable only when the object is being listened with `depth` more than 1.
 
@@ -462,7 +461,7 @@ Applicable only when the object is being listened with `depth` more than 1.
 prevIndex(linkname)
 ```
 
-#### links()
+### links()
 Array containing _Appbase Snapshot Objects_ for all the links, in the same order specified while adding the links.  
 Applicable only when the object is being listened with `depth` more than 1.
 
