@@ -84,7 +84,7 @@ Sets a property's value.
 
 #### Usage
 ```javascript
-set('prop',val,[callback])
+set(prop,val,[callback])
 ```
  - __prop__ `String` - property name
  - __value__ `String/Number/Boolean` - value
@@ -129,7 +129,7 @@ Removes a property's value.
 
 #### Usage
 ```javascript
-unset('prop',[callback])
+unset(prop,[callback])
 ```
  - __prop__ `String` - property name
  - __callback__ - with args: (err,new obj snapshot)
@@ -190,40 +190,48 @@ destroy([callback])
 - __callback__ - with args: (err)
 
 ### on('value')
-TODO: explain levels
+
 Reading of data from _Appbase_ happens through listeing to events on _Appbase References_. This event listens to changes in the value at a path. 
 
 It immediately fires the event with existing value, when listening for the first time, then fires again whenever the value is changed. 
 
 #### Usage
 ```javascript
-on('value',[options],callback)
+on('value',[depth],callback)
 ```
- - __options__ is an object with properties:
-     - __levels__ `Number` - include data of referenced objects up to this depth 
-     - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level. eg. levels:3, limits:[5,2,2] = total objects included: 5 x 2 x 2 = 20.
+ - __depth__ `Number` - The depth of links up to which listen for data changes. Default value is `1`, meaning data of the object it self.
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
+
+`depth` allows retriving data of the links along with the actual object. If a depth is provided, the method also listens for changes in the links and fires the event when a link's data is changed. 
+
+In the background, listening with `depth` happens through listening to `value` with `depth 0` on the linked objects. It's a costly operation and use is only when critically needed.
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
+var userRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne');
+// Existing data at this location: {first_name:'Andy', last_name: 'Dufresne', prison_id: 37927}
+
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
-/* Existing data at this location: {size:12}
- */
+// Existing data : {size:12}
 
 toolRef.on('value',function(snapshot){
-    console.log(snapshot.val().size);
-})
+    console.log('tool:' + snapshot.val().size);
+}) // Immediately logs '12' - the existing value. After 2 secs, it will log '13'.
+
+userRef.on('value',1,function(snapshot){
+    console.log('user:' + snapshot.val());
+}) /* Immediately logs '12'
+ * TODO:
+ *
+ */
 
 seTimeout(function(){
     toolRef.set('size',13);
 },2000);
 
-/* Immediately logs '12' - the existing value.
- * After 2 secs, it logs '13'.
- */
 ```
 
 ### on('link_added')
@@ -235,19 +243,21 @@ on('link_added',[options],callback)
 ```
 
  - `options` is an object with properties:
-     - __levels__ `Number` - include data of referenced objects up to this depth 
-     - __limits__ `Array` - list of numbers, specifying how many objects should be included from each level.
+     - __limit__ How many exsiting links to fetch
      - __startAt__ `Number` - index to start with
+     - __depth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself. 
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
+`startAt` and `limit` are only effective for retrieving the existing data. New links will be returned regardless of its index
+
+`depth` here is a bit different from `value` event's `depth` parameter. Here it means that whenever a new link is added, along with its data, its links' data will be retrieved, too. The fetching of links' data in depth happens only once and it doesn't keep listening to changes in the links' data in depth.
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
-
 #### Example
 ```javascript
-TODO:
+TODO: depth
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 /* Existing data at this location: {size:12}
  */
@@ -266,30 +276,38 @@ seTimeout(function(){
 ```
 
 ### on('link_removed')
-Listen to removal of objects/properties. 
+Listen to removal of links. 
 
 #### Usage
 ```javascript
-on('child_removed',[options],callback)
+on('link_removed',callback)
 ```
  - __callback__ `Function` - with snapshot to the removed object. 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 ### on('link_changed')
-Whenever an the value/index of an existing property is changed, this event is called. It doesn't log the existing value.
+
+If an existing link is changed, this event is fired.
 
 #### Usage
 ```javascript
-on('link_changed',[options],callback)
+on('link_changed',[depth],callback)
 ```
+ - __depth__ `Number` - The depth of links up to which listen for data changes. Default value is `0`, meaning no listening on the data.
+ - __callback__ `Function` - will be passed an Appbase Snapshot Object.
+
+These are the cases, where a link is considered changed:
+ 1. A link's order is manually changed, i.e. by calling `link(linkname)` and providing a manual order for an existing link
+ 2. A link now points to a different object
+ 3. Data in the object where the link points, is changed. In this case, `depth` should be kept `1`. In the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `depth` is kept `0` by default, where this event is fired only for the first two cases.
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-TODO
+TODO depth
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
 
 // Existing data at this location: {size:12,usage:'shaping chess pieces'}
@@ -312,6 +330,20 @@ off([event])
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
+
+### once()
+The callback function is called only once and then its turned off.
+
+#### Usage
+```javascript
+once(event,..)
+```
+ - __event__ `String` - Any of the four events, 
+ - Other arguments depend on the `event`.
+
+#### Returns
+The same `Appbase` reference, to allow chaining of methods
+
 
 ### refDuplicate()
 Get a new _Appbase Reference Object_ pointing to the same path. This is useful when you want to use the same object in a different context and attach different listeners.
@@ -380,9 +412,6 @@ Returns the data (prop-value pairs) in the form of a JavaScript object.
 val()
 ```
 
-#### Returns
-The data (prop-value pairs) of the object as a JavaScript object.
-
 ### prevVal()
 Returns the data in the form of a JavaScript object as it was before this change was received.
 
@@ -391,8 +420,6 @@ Returns the data in the form of a JavaScript object as it was before this change
 prevVal()
 ```
 
-#### Returns
-The data in the form of a JavaScript object as it was before this change was received.
 
 ### ref()
 Returns the Appbase Reference for this object.
@@ -402,19 +429,21 @@ Returns the Appbase Reference for this object.
 ref()
 ```
 
-#### Returns
-The Appbase Reference for this object.
+### name()
+The link name with which the object was stored in the current path.
+#### Usage
+```javascript
+name()
+```
 
 ### index()
-Returns the index of this object.
+Returns the index of this object
 
 #### Usage
 ```javascript
 index()
 ```
 
-#### Returns
-The Appbase Reference for this object.
 
 ### prevIndex()
 Returns the index of this object before this change was received.
@@ -424,8 +453,23 @@ Returns the index of this object before this change was received.
 prevIndex()
 ```
 
-#### Returns
-The Appbase Reference for this object before this change was received.
+#### link()
+Snapshot object of the link.  
+Applicable only when the object is being listened with `depth` more than 1.
+
+#### Usage
+```javascript
+prevIndex(linkname)
+```
+
+#### links()
+Array containing _Appbase Snapshot Objects_ for all the links, in the same order specified while adding the links.  
+Applicable only when the object is being listened with `depth` more than 1.
+
+#### Usage
+```javascript
+links()
+```
 
 ### exportVal()
 Returns the data in the form of a JavaScript object with ordering data.
@@ -434,18 +478,6 @@ Returns the data in the form of a JavaScript object with ordering data.
 ```javascript
 exportVal()
 ```
-
-#### Returns
-The value of the object as a JavaScript object with ordering data.
-
-### name()
-#### Usage
-```javascript
-name()
-```
-
-#### Returns
-The property name with which the object was stored in the current path.
 
 ## Privileged Methods
 
@@ -482,7 +514,7 @@ Appbase.rename('/users/abc', '/prisoners/pqr'); // Moving an object to another n
 
 Appbase.rename('/user/pqr/xyz','/user/abc/klm'); //Throws an error, as the path should only be up to /namespace/pk
 
-Appbase.rename('/users', '/prisoners/abc'); // Throws an error, if `old` is namespace, the `new` has to be namespace.
+Appbase.rename('/users', '/prisoners/abc'); // Throws an error, if `old` is namespace, the `new` has to a be namespace.
 
 var abRef = ('/user/abc');
 var abNewRef = Appbase.rename(abRef,'/user/pqr'); //Works. `abRef` will now turn invalid, and listeners won't work, until a new object at /user/abc is created. Use `abNewRef` instead.
