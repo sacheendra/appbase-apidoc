@@ -17,13 +17,19 @@ This is the way to create a new object in a _namespace_. A _namespace_ is a coll
 
 #### Usage
 ```javascript
-Appbase.new(namespace,[key],callback)
+Appbase.new({ns: namespace, pk: key},callback)
 ```
- - __namespace__ `String` - Name of the namespace
- - __key__ _(optional)_ `String` - key given to the new object
+ - __ns__ _(optional)_ `String` - Name of the namespace
+ - __pk__ _(optional)_ `String` - key given to the new object
  - __callback__ `Function` - err
 
-The _namespace_ is created if it does not already exist. Optionally, A _unique key_ can be given to the the object, otherwise a unique id will be given automatically. The key should not contain '/' character. 
+The _namespace_ automatically is created if it does not already exist. 
+
+Optionally, A unique _primary key_ can be given to the the object, otherwise a generate unique key will be given automatically. The key should not contain '/' character. 
+
+If no _namespace_ given, the new object is goes to a precreated  namespace named _Default_.
+
+If neither the _key_ nor the _namespace_ is given, an object with a generated unique key is created under the _Default_ namespace. 
 
 If the object with the given key already exists, reference to the existing object will be returned.
 
@@ -37,7 +43,7 @@ An _Appbase Reference_ pointing to the new/existing object.
 
 #### Example
 ```javascript
-var myDataRef = Appbase.new('prisoner','andy_dufresne',function(error){
+var myDataRef = Appbase.new({ns:'prisoner',key:'andy_dufresne'},function(error){
     if(!error){
         console.log('object added.')
     }
@@ -156,7 +162,7 @@ The same `Appbase` reference, to allow chaining of methods
 #### Example
 ```javascript
 var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
-var toolRef = Appbase.new('tool'); // new object of the namespace 'tool'
+var toolRef = Appbase.new({ns:'tool'}); // new object of the namespace 'tool'
 
 toolRef.set('size',12);
 prisonerRef.link('rock_hammer',toolRef);
@@ -283,12 +289,12 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var redRef = Appbase.new('prisoner','ellis_boyd_red'); // New prisoner
+var redRef = Appbase.new({ns:'prisoner',pk:'ellis_boyd_red'}); // New prisoner
 redRef.set('firstname','Ellis Boyd');
 redRef.set('lastname','Redding');
 redRef.set('nick','Red');
 
-var capRef = Appbase.new('clothes');
+var capRef = Appbase.new({ns:'clothes'});
 capRef.set('type','Newsboy Cap');
 redRef.link('cap',capRef); // Red has a Newsboy Cap.
 
@@ -456,8 +462,7 @@ var newRef = prisonerRef.refToUplink(); //Throws an error
 ```
 
 ## Appbase Snapshot Object
-_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference. 
-TODO: Explain methods
+_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference.
 
 ### val()
 Returns the data (prop-value pairs) in the form of a JavaScript object.
@@ -475,9 +480,8 @@ Returns the data in the form of a JavaScript object as it was before this change
 prevVal()
 ```
 
-
 ### ref()
-Returns the Appbase Reference for this object.
+Returns an Appbase Reference for this object.
 
 #### Usage
 ```javascript
@@ -485,7 +489,7 @@ ref()
 ```
 
 ### name()
-The link name with which the object was stored in the current path.
+The link name with which the object is stored in the current path.
 #### Usage
 ```javascript
 name()
