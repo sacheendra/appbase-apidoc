@@ -203,7 +203,7 @@ on('value',[listenDepth],callback)
 
 `listenDepth` allows listening and retrieving data of the links along with the actual object. If a depth is provided, the method also listens for changes in the links and fires the event when a link's data is changed.
 
-In the background, listening with `listenDepth` happens through listening to `value` with `listenDepth 0` on the linked objects. It's a costly operation in terms of bandwidth if there are a huge number of links.
+In the background, listening with `listenDepth` happens through listening to `value` on the linked objects. It's a costly operation in terms of bandwidth if there are a huge number of links.
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
@@ -245,7 +245,7 @@ setTimeout(function(){
 },4000);
 
 /* After 4 secs, as prisonerRef's data is changed, 'value' event would be fired on prisonerRef.
- * User-logger is logging rock_hammer's size, which is still '13'. 
+ * Prisoner-logger is logging rock_hammer's size, which is still '13'. 
  * So it would would log '13', the second time.
  * Obviously, this time prisoner-logger would log `prison_id` too.
  * 
@@ -340,11 +340,11 @@ on('link_changed',[listenDepth],callback)
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
 These are the cases, where a link is considered changed:
- 1. A link's order is manually changed, i.e. by calling `link(linkname)` and providing a manual order for an existing link
+ 1. A link's order is manually changed, i.e. by calling `link(linkname,order)` and providing a manual order for an existing link
  2. A link now points to a different object
- 3. `listenDepth` should be kept `1`Data in the object where the link points, is changed. In this case, . 
+ 3. Data in the object where the link points, is changed. To listen to such changes, `listenDepth` should be kept `> 0`. 
 
-In the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
+When the `listenDepth` > `0`, in the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
  
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
@@ -353,17 +353,18 @@ The same `Appbase` reference, to allow chaining of methods
 ```javascript
 TODO depth
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
+// Existing data at this location: {size:12}
 
-// Existing data at this location: {size:12,usage:'shaping chess pieces'}
+var andy = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 
-toolRef.on('link_changed',function(snapshot){
-    var text = snapshot.name() + ' changed from ' + snapshot.prevVal() + ', to ' + snapshot.val();
-    console.log(text);
+andy.on('link_changed',1,function(snapshot){
+    //As the `listenDepth` is '1', the event is fired when the link's data is changed
+    console.log(snapshot.val());
 })
 
-toolRef.insert('usage','prison break');
+toolRef.set('usage','prison break');
 
-// Logs 'usage changed from shaping chess pieces to prision break'.
+// Logs {size: 12, usage: 'prison break'}.
 ```
 ### off()
 Stop listening to changes.
@@ -561,7 +562,7 @@ An `Appbase` reference pointing to the new path, if renaming of an object is hap
 ```javascript
 Appbase.rename('/users', '/prisoners'); // Renaming a namespace
 
-Appbase.rename('/users/abc', '/users/xyz'); //Renaming a primary key
+Appbase.rename('/users/abc', '/users/xyz'); //Renaming the primary key
 
 Appbase.rename('/users/abc', '/prisoners'); // Moving an object to another namespace
 
@@ -569,10 +570,10 @@ Appbase.rename('/users/abc', '/prisoners/pqr'); // Moving an object to another n
 
 Appbase.rename('/user/pqr/xyz','/user/abc/klm'); //Throws an error, as the path should only be up to /namespace/pk
 
-Appbase.rename('/users', '/prisoners/abc'); // Throws an error, if `old` is namespace, the `new` has to a be namespace.
+Appbase.rename('/users', '/prisoners/abc'); // Throws an error, if `old` is a namespace, the `new` has to a be namespace.
 
 var abRef = ('/user/abc');
-var abNewRef = Appbase.rename(abRef,'/user/pqr'); //Works. `abRef` will now turn invalid, and listeners won't work, until a new object at /user/abc is created. Use `abNewRef` instead.
+var abNewRef = Appbase.rename(abRef,'/user/pqr'); //Renaming the primary key. `abRef` will now turn invalid, and listeners won't work, until a new object at /user/abc is created. Use `abNewRef` instead.
 
 var prisonerRef = Appbase.rename(abNewRef,'/prisoner'); // Moving an object to another namespace.
 
