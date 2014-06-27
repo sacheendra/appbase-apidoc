@@ -37,7 +37,7 @@ An _Appbase Reference_ pointing to the new/existing object.
 
 #### Example
 ```javascript
-var myDataRef = Appbase.new('User','andy_dufresne',function(error){
+var myDataRef = Appbase.new('prisoner','andy_dufresne',function(error){
     if(!error){
         console.log('object added.')
     }
@@ -59,10 +59,10 @@ An `Appbase` reference pointing to the object located at the given path.
 
 #### Example
 ```javascript
-var myDataRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var myDataRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `linkname : 'rock_hammer'` in the object of the `namespace : 'user'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
+The _path_, `'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `linkname : 'rock_hammer'` in the object of the `namespace : 'prisoner'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
 
 
 ## Appbase Reference
@@ -109,7 +109,7 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 
 toolRef.strongSet('size',function(prevSize) {
   return prevSize + 1;
@@ -155,19 +155,19 @@ The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var userRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne');
+var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 var toolRef = Appbase.new('tool'); // new object of the namespace 'tool'
 
 toolRef.set('size',12);
-userRef.link('rock_hammer',toolRef);
+prisonerRef.link('rock_hammer',toolRef);
 
 /* Now Dufresne's rock hammer can be accessed directly with 
- * the path: 'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'
+ * the path: 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'
  */
 ```
 
 ### unlink()
-removes a link
+Removes a link.
 
 #### Usage
 ```javascript
@@ -196,40 +196,66 @@ It immediately fires the event with existing value, when listening for the first
 
 #### Usage
 ```javascript
-on('value',[depth],callback)
+on('value',[listenDepth],callback)
 ```
- - __depth__ `Number` - The depth of links up to which listen for data changes. Default value is `1`, meaning data of the object it self.
+ - __listenDepth__ `Number` - The depth of links up to which listen for data changes. Default value is `1`, meaning data of the object itself.
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
-`depth` allows retriving data of the links along with the actual object. If a depth is provided, the method also listens for changes in the links and fires the event when a link's data is changed. 
+`listenDepth` allows listening and retrieving data of the links along with the actual object. If a depth is provided, the method also listens for changes in the links and fires the event when a link's data is changed.
 
-In the background, listening with `depth` happens through listening to `value` with `depth 0` on the linked objects. It's a costly operation and use is only when critically needed.
+In the background, listening with `listenDepth` happens through listening to `value` with `listenDepth 0` on the linked objects. It's a costly operation in terms of bandwidth if there are a huge number of links.
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-var userRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne');
-// Existing data at this location: {first_name:'Andy', last_name: 'Dufresne', prison_id: 37927}
+var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
+// Existing data at this location: {first_name:'Andy', last_name: 'Dufresne'}
 
-var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 // Existing data : {size:12}
 
-toolRef.on('value',function(snapshot){
-    console.log('tool:' + snapshot.val().size);
-}) // Immediately logs '12' - the existing value. After 2 secs, it will log '13'.
+toolRef.on('value',function(toolSnapshot){
+    console.log('tool-logger: ' + toolSnapshot.val().size);
+});
 
-userRef.on('value',1,function(snapshot){
-    console.log('user:' + snapshot.val());
-}) /* Immediately logs '12'
- * TODO:
- *
- */
+prisonerRef.on('value',2,function(prisonerSnapshot){
 
-seTimeout(function(){
+    /* The `listenDepth` here is '2', so it would listen to changes in the links' data, 
+     * The only link here is 'rock_hammer' and its snapshot is accessible via prisonerSnapshot.link('rock_hammer').
+     * `prisonerSnapshot` itself contains prisoner's data, and prisonerSnapshot.val() would return {first_name:'Andy', last_name: 'Dufresne'}.
+     * Take a look at the Appbase Snapshot Object in this document for details.
+     */
+
+    var toolSnapshot = prisonerSnapshot.link('rock_hammer');
+    console.log('prisoner-logger: ' +  + toolSnapshot.val().size);
+});
+
+setTimeout(function(){
     toolRef.set('size',13);
 },2000);
+
+/* Both loggers would immediately log '12' - the existing value. 
+ * After 2 secs, they would log '13'.
+ */ 
+
+setTimeout(function(){
+    prisonerRef.set('prison_id', 37927);
+},4000);
+
+/* After 4 secs, as prisonerRef's data is changed, 'value' event would be fired on prisonerRef.
+ * User-logger is logging rock_hammer's size, which is still '13'. 
+ * So it would would log '13', the second time.
+ * Obviously, this time prisoner-logger would log `prison_id` too.
+ * 
+ * stdout as a whole:
+ *  |--------------------
+ *  | tool-logger: 12
+ *  | prisoner-logger: {first_name:'Andy', last_name: 'Dufresne'}  13
+ *  | prisoner-logger: {first_name:'Andy', last_name: 'Dufresne', prison_id: 37927} 13
+ *  |--------------------
+ */
 
 ```
 
@@ -238,39 +264,53 @@ Get existing links inserted at a location, and listen to new ones.
 
 #### Usage
 ```javascript
-on('link_added',[options],callback)
+on('link_added',[fetchDepth],[orderingOptions],callback)
 ```
-
- - `options` is an object with properties:
+ - __fetchDepth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself.
+ - `orderingOptions` is an object with properties:
      - __limit__ How many exsiting links to fetch
      - __startAt__ `Number` - index to start with
-     - __depth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself. 
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
-`startAt` and `limit` are only effective for retrieving the existing data. New links will be returned regardless of its index
 
-`depth` here is a bit different from `value` event's `depth` parameter. Here it means that whenever a new link is added, along with its data, its links' data will be retrieved, too. The fetching of links' data in depth happens only once and it doesn't keep listening to changes in the links' data in depth.
+`fetchDepth` here is different from `value` event's `listenDepth` parameter. Here it means that whenever a new link is added, along with its own data, its links' data should be retrieved, too. Fetching of links' data in depth happens only once and it doesn't keep listening to changes in the links' data in depth.
+
+`startAt` and `limit` are only effective for retrieving the existing data. New links will be returned regardless of their index.
+
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
-TODO: depth
-var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
-/* Existing data at this location: {size:12}
- */
+var redRef = Appbase.new('prisoner','ellis_boyd_red'); // New prisoner
+redRef.set('firstname','Ellis Boyd');
+redRef.set('lastname','Redding');
+redRef.set('nick','Red');
 
-toolRef.on('link_added',function(snapshot){
-    console.log(snapshot.name(),':',snapshot.val());
-})
+var capRef = Appbase.new('clothes');
+capRef.set('type','Newsboy Cap');
+redRef.link('cap',capRef); // Red has a Newsboy Cap.
 
-seTimeout(function(){
-    toolRef.set('usage','shaping chess pieces');
+var andyRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
+
+andyRef.on('link_added',2,function(linkSnap){
+    console.log('Name:', linkSnap.val().nick);
+    
+    // As the `fetchDepth` is `2`, cap's data is fetched too, and the snapshot is available
+    var capSnap = linkSnap.link('cap'); 
+    console.log('wears:', capSnap.val().type); 
+});
+
+setTimeout(function(){
+    andyRef.link('best_friend',redRef);
 },2000);
 
-/* Immediately logs 'size : 12' - existing data.
- * After 2 secs, it logs 'usage : shaping chess pieces'.
+/* stdout
+ * |-----------------
+ * | Nick: Red
+ * | wears: Newsboy Cap
+ * |-----------------
  */
 ```
 
@@ -279,35 +319,40 @@ Listen to removal of links.
 
 #### Usage
 ```javascript
-on('link_removed',callback)
+on('link_removed',[fetchDepth],callback)
 ```
- - __callback__ `Function` - with snapshot to the removed object. 
+ - __fetchDepth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself
+ - __callback__ `Function` - with snapshot to the removed object 
+
+The `fetchDepth` here is similar to the one in 
+
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 ### on('link_changed')
-
 If an existing link is changed, this event is fired.
 
 #### Usage
 ```javascript
-on('link_changed',[depth],callback)
+on('link_changed',[listenDepth],callback)
 ```
- - __depth__ `Number` - The depth of links up to which listen for data changes. Default value is `0`, meaning no listening on the data.
+ - __listenDepth__ `Number` - The depth of links up to which listen for data changes. Default value is `0`, meaning no listening on the data.
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
 These are the cases, where a link is considered changed:
  1. A link's order is manually changed, i.e. by calling `link(linkname)` and providing a manual order for an existing link
  2. A link now points to a different object
- 3. Data in the object where the link points, is changed. In this case, `depth` should be kept `1`. In the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `depth` is kept `0` by default, where this event is fired only for the first two cases.
+ 3. `listenDepth` should be kept `1`Data in the object where the link points, is changed. In this case, . 
 
+In the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
+ 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 #### Example
 ```javascript
 TODO depth
-var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 
 // Existing data at this location: {size:12,usage:'shaping chess pieces'}
 
@@ -321,6 +366,8 @@ toolRef.insert('usage','prison break');
 // Logs 'usage changed from shaping chess pieces to prision break'.
 ```
 ### off()
+Stop listening to changes.
+
 #### Usage
 ```javascript
 off([event])
@@ -338,7 +385,15 @@ The callback function is called only once and then its turned off.
 once(event,..)
 ```
  - __event__ `String` - Any of the four events, 
- - Other arguments depend on the `event`.
+ - Other arguments depend on `event`.
+
+This is equivalent to:
+```javascript
+abRef.on('value',function(snap)){
+    // do something with snap
+    abRef.off('value');
+}
+```
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
@@ -367,11 +422,11 @@ refToLink(linkname)
 
 #### Example
 ```javascript
-var userRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne');
-var toolRef = userRef.refToLink('rock_hammer');
+var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
+var toolRef = prisonerRef.refToLink('rock_hammer');
 
 /* `toolRef` points to the the path:
- * 'https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer'
+ * 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'
  */
 ```
 
@@ -389,14 +444,14 @@ Throws an error of the object has no uplink.
 
 #### Example
 ```javascript
-var toolRef = Appbase.ref('https://shawshank.api.appbase.io/user/andy_dufresne/rock_hammer');
-var userRef = toolRef.refToUplink();
+var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
+var prisonerRef = toolRef.refToUplink();
 
-/* `userRef` points to the the path:
- * 'https://shawshank.api.appbase.io/user/andy_dufresne'
+/* `prisonerRef` points to the the path:
+ * 'https://shawshank.api.appbase.io/prisoner/andy_dufresne'
  */
  
-var newRef = userRef.refToUplink(); //Throws an error
+var newRef = prisonerRef.refToUplink(); //Throws an error
 ```
 
 ## Appbase Snapshot Object
@@ -458,7 +513,7 @@ Applicable only when the object is being listened with `depth` more than 1.
 
 #### Usage
 ```javascript
-prevIndex(linkname)
+link(linkname)
 ```
 
 ### links()
@@ -471,6 +526,7 @@ links()
 ```
 
 ### exportVal()
+TODO
 Returns the data in the form of a JavaScript object with ordering data.
 
 #### Usage
