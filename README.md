@@ -2,20 +2,21 @@
 
 # Appbase JavaScript API
 
-## Primitive Datatypes
+## Appbase Datatypes
 
-  * Number
-  * String
-
-## Appbase Conceptual Datatypes
+### Conceptual
   * Vertex
   * Edge
   * Property
-  * Value
 
-## Appbase Javascript Datatypes
- * Reference
+### Primitive Javascript
+  * Number
+  * String
+
+### Javascript Objects
+ * Appbase Reference
  * Snapshot Object
+
 
 ## Appbase Global
 
