@@ -17,7 +17,6 @@
  * Appbase Reference
  * Snapshot Object
 
-
 ## Appbase Global
 
 ### Appbase.new()
