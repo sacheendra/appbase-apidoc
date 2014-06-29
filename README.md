@@ -103,12 +103,12 @@ abRef.properties.add(prop,val,[callback])
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
-### strongSet()
+### properties.commit()
 A strongly consistent _set_ operation. It allows you create consistent aggregators, such as counters.
 
 #### Usage
 ```javascript
-abRef.strongSet(property, apply, [callback])
+abRef.properties.commit(property, apply, [callback])
 ```
  - __property__ `String`
  - __apply__ `function` - The function should return which returns String/Number. The old value is passed in as an argument to the function
@@ -121,7 +121,7 @@ The same `Appbase` reference, to allow chaining of methods
 ```javascript
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 
-toolRef.strongSet('size',function(prevSize) {
+toolRef.properties.commit('size',function(prevSize) {
   return prevSize + 1;
 });
 
@@ -151,14 +151,20 @@ Sets/inserts a edge. This operation creates a new accessible path, which can be 
 
 #### Usage
 ```javascript
-abRef.edges.add([edgename], abRef, [index], [callback])
+abRef.edges.add([edgename], [abRef], [index], [callback])
 ```
  - __edgename__ _(optional)_ `String`
- - __abRef__ `Appbase Reference` - The vertex where the edge would point
- - __index__ `Number` - The property is inserted at the index, things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
+ - __abRef__ _(optional)_ `Appbase Reference` - The vertex where the edge would point
+ - __index__ _(optional)_ `Number` - The property is inserted at the index, things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1. If no `index` is given, the edge would be enqueued.
  - __callback__ - with args: (err)
 
-If no __edgename__ is given while inserting an _Appbase object_, vertex's __uuid__ will be set as the __property__ name
+Either two of the first there optional arguments is necessary for the method to work.
+
+If no `edgename` is given while inserting an _Appbase object_, vertex's __uuid__ will be set as the edge's name.
+
+If some edge exists and points to a vertex, and now its passed as `edgename` with an Appbase Reference of some other vertex, the edge will be _replaced_. It is considered to be _removed_ and _added_ again, therefore, __edge_removed__ event will be fired, followed by __edge_added__ for the same edge. Take a look at the documentation of `abRef.on()` for more details on the events.
+
+If an existing edgename, or abRef is passed with an index, the edge  is moved to that index, and all the following edges are  considered moved, too. __edge_moved__ event will be fired on all of them. 
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
@@ -206,70 +212,35 @@ It immediately fires the event with existing value, when listening for the first
 
 #### Usage
 ```javascript
-abRef.on('value',[listenerName],[listenDepth],callback)
+abRef.on('value',[listenerName],callback)
 ```
  - __listenerName__ _(Optional)_ `String` - Name given to the listener.
- - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `1`, meaning data of the vertex itself.
- - __callback__ `Function` - will be passed an Appbase Snapshot Object.
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference Object` - points the path on which the event is fired
+    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the path. Take a look at the documentation of Appbase Snapshot Object.
 
 `listenerName` is a unique string, which can be used later on to turn this listener off using `offWithName()`. This is a way to keep track of listeners. If a `listenerName` is given again with a different callback function, the old callback function is replaced, and will no longer be called when the event is fired, instead the new function is called. If no `listenerName` is given, a unique string will be generated as the listener's name and returned.
-
-`listenDepth` allows listening and retrieving data of the edges along with the actual vertex. If a depth is provided, the method also listens for changes in the edges and fires the event when a edge's data is changed.
-
-In the background, listening with `listenDepth` happens through listening to `value` on the objects pointed by the edges. It's a costly operation in terms of bandwidth if there are a huge number of edges.
 
 #### Returns
 A `string` which is the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
-var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
-// Existing data at this location: {first_name:'Andy', last_name: 'Dufresne'}
-
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 // Existing data : {size:12}
 
-toolRef.on('value',function(toolSnapshot){
-    console.log('tool-logger: ' + toolSnapshot.val().size);
-});
-
-prisonerRef.on('value',2,function(prisonerSnapshot){
-
-    /* The `listenDepth` here is '2', so it would listen to changes in the edges' data, 
-     * The only edge here is 'rock_hammer' and its snapshot is accessible via prisonerSnapshot.edges.add('rock_hammer').
-     * `prisonerSnapshot` itself contains prisoner's data, and prisonerSnapshot.val() would return {first_name:'Andy', last_name: 'Dufresne'}.
-     * Take a look at the Appbase Snapshot Object in this document for details.
-     */
-
-    var toolSnapshot = prisonerSnapshot.edges.add('rock_hammer');
-    console.log('prisoner-logger: ' +  + toolSnapshot.val().size);
-});
+toolRef.on('value',function(err,ref,snap){
+   console.log(snap.properties().size); 
+);
 
 setTimeout(function(){
     toolRef.properties.add('size',13);
 },2000);
 
-/* Both loggers would immediately log '12' - the existing value. 
- * After 2 secs, they would log '13'.
+/* It would immediately log '12' - the existing value. 
+ * After 2 secs, It would log '13'.
  */ 
-
-setTimeout(function(){
-    prisonerRef.properties.add('prison_id', 37927);
-},4000);
-
-/* After 4 secs, as prisonerRef's data is changed, 'value' event would be fired on prisonerRef.
- * Prisoner-logger is logging rock_hammer's size, which is still '13'. 
- * So it would would log '13', the second time.
- * Obviously, this time prisoner-logger would log `prison_id` too.
- * 
- * stdout as a whole:
- *  |--------------------
- *  | tool-logger: 12
- *  | prisoner-logger: {first_name:'Andy', last_name: 'Dufresne'}  13
- *  | prisoner-logger: {first_name:'Andy', last_name: 'Dufresne', prison_id: 37927} 13
- *  |--------------------
- */
-
 ```
 
 ### on('edge_added')
@@ -277,17 +248,19 @@ Get existing edges inserted at a location, and listen to new ones.
 
 #### Usage
 ```javascript
-abRef.on('edge_added',[listenerName],[fetchDepth],[orderingOptions],callback)
+abRef.on('edge_added',[listenerName],[options],callback)
 ```
- - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
- - __fetchDepth__ `Number` - The depth of edges up to which the data should be retrieved. Default is `1`, meaning data of the edge itself.
- - `orderingOptions` is a vertex with properties:
-     - __limit__ How many exsiting edges to fetch
-     - __startAt__ `Number` - index to start with
- - __callback__ `Function` - will be passed an Appbase Snapshot Object.
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`
+ - __options__ `Object`
+     - __limit__ How many existing edges to fetch
+     - __startAt__ `Number` - Index to start with
+     - __noData__ `Boolean` - Whether to include the data stored at the vertex where the edge points 
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
+    - __[snapObj]__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
 
-
-`fetchDepth` here is different from `value` event's `listenDepth` parameter. Here it means that whenever a new edge is added, along with its own data, its edges' data should be retrieved, too. Fetching of edges' data in depth happens only once and it doesn't keep listening to changes in the edges' data in depth.
+`snapObj` will not be passed if `{noData: true}` is passed as the options to the listener.
 
 `startAt` and `limit` are only effective for retrieving the existing properties. New edges will be returned regardless of their index.
 
@@ -301,28 +274,17 @@ redRef.properties.add('firstname','Ellis Boyd');
 redRef.properties.add('lastname','Redding');
 redRef.properties.add('nick','Red');
 
-var capRef = Appbase.new('clothes');
-capRef.properties.add('type','Newsboy Cap');
-redRef.edges.add('cap',capRef); // Red has a Newsboy Cap.
-
 var andyRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 
-andyRef.on('edge_added',2,function(edgeSnap){
+andyRef.on('edge_added',function(edgeSnap){
     console.log('Name:', edgeSnap.val().nick);
-    
-    // As the `fetchDepth` is `2`, cap's data is fetched too, and the snapshot is available
-    var capSnap = edgeSnap.edges.add('cap'); 
-    console.log('wears:', capSnap.val().type); 
 });
 
-setTimeout(function(){
-    andyRef.edges.add('best_friend',redRef);
-},2000);
+andyRef.edges.add('best_friend',redRef);
 
 /* stdout
  * |-----------------
- * | Nick: Red
- * | wears: Newsboy Cap
+ * | Name: Red
  * |-----------------
  */
 ```
@@ -332,54 +294,81 @@ Listen to removal of edges.
 
 #### Usage
 ```javascript
-abRef.on('edge_removed',[listenerName],[fetchDepth],callback)
+abRef.on('edge_removed',[listenerName],callback)
 ```
  - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
  - __fetchDepth__ `Number` - The depth of edges up to which the data should be retrieved. Default is `1`, meaning data of the edge itself
- - __callback__ `Function` - with snapshot to the removed vertex 
-
-The `fetchDepth` here is similar to the one in 
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
+    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 ###  on('edge_changed')
-If an existing edge is changed, this event is fired.
+If the properties of the vertex, pointed by an existing edge is changed, this event is fired.
 
 #### Usage
 ```javascript
-abRef.on('edge_changed',[listenerName],[listenDepth],callback)
+abRef.on('edge_changed',[listenerName],callback)
 ```
  - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
  - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `0`, meaning no listening on the properties.
- - __callback__ `Function` - will be passed an Appbase Snapshot Object.
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
+    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
 
-These are the cases, where a edge is considered changed:
- 1. A edge's order is manually changed, i.e. by calling `edge(edgename,order)` and providing a manual order for an existing edge
- 2. A edge now points to a different vertex
- 3. Data in the vertex where the edge points, is changed. To listen to such changes, `listenDepth` should be kept `> 0`. 
+For this event to fire, in the background the vertexes pointed by all the edges are listened for `value` event, and this would be a costly operation in terms of bandwidth if there are a huge number of edges.
 
-When the `listenDepth` > `0`, in the background, all the edges are being listened for `value` event, and this is a very costly operation if there are a huge number of edges. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
- 
 #### Returns
 A `string` which is the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
+var andy = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
+
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 // Existing data at this location: {size:12}
 
-var andy = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 
-andy.on('edge_changed',1,function(snapshot){
-    //As the `listenDepth` is '1', the event is fired when the edge's data is changed
-    console.log(snapshot.val());
+andy.on('edge_changed',function(snapshot){
+    for (var prop in snapshot.properties()) {
+        console.log(prop,':',snapshot.properties()[prop]);
+    }
 })
 
 toolRef.properties.add('usage','prison break');
 
-// Logs {size: 12, usage: 'prison break'}.
+/* stdout
+ * |-----------------
+ * | size : 12
+ * | usage : prison break
+ * |-----------------
+ */
 ```
+
+###  on('edge_moved')
+This event is fired, when the order of an edge is changed. 
+
+When the order of an edge is manually changed by calling `abRef.edges.add()` on an existing edge, also the other edges are moved, either they are shifted upward or downward by '1' in the order. This event is fired for all the edges, moved manually or automatically.
+
+#### Usage
+```javascript
+abRef.on('edge_moved',[listenerName],callback)
+```
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
+ - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `0`, meaning no listening on the properties.
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
+    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
+ 
+#### Returns
+A `string` which is the listener's name and can be used to turn the listener off.
+
+
 ### off()
 Turn off the listeners on an event.
 
@@ -472,13 +461,6 @@ Returns the _namespace_ of the vertex.
 ```javascript
 snapObj.namespace()
 ```
-### ref()
-Returns an Appbase Reference for this vertex.
-
-#### Usage
-```javascript
-snapObj.ref()
-```
 
 ### name()
 The edge name with which the vertex is stored in the current path.
@@ -495,39 +477,12 @@ Returns the index of this vertex
 snapObj.index()
 ```
 
-
 ### prevIndex()
 Returns the index of this vertex before this change was received.
 
 #### Usage
 ```javascript
 snapObj.prevIndex()
-```
-
-### edge()
-Snapshot object of the edge.  
-Applicable only when the vertex is being listened with `depth` more than 1.
-
-#### Usage
-```javascript
-snapObj.edge(edgename)
-```
-
-### edges()
-Array containing _Appbase Snapshot Objects_ for all the edges, in the same order specified while adding the edges.  
-Applicable only when the vertex is being listened with `depth` more than 1.
-
-#### Usage
-```javascript
-snapObj.edges()
-```
-
-### exportVal()
-Returns the data in the form of a JavaScript object with ordering data.
-
-#### Usage
-```javascript
-snapObj.exportVal()
 ```
 
 ## Privileged Methods
