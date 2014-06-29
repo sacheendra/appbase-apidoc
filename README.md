@@ -2,36 +2,40 @@
 
 # Appbase JavaScript API
 
-## Datatypes
+## Primitive Datatypes
 
   * Number
   * String
-  * Boolean
-  * Object
+
+## Appbase Conceptual Datatypes
+  * Vertex
+  * Edge
+  * Property
+  * Value
+
+## Appbase Javascript Datatypes
+ * Reference
+ * Snapshot Object
 
 ## Appbase Global
 
 ### Appbase.new()
 
-This is the way to create a new object in a _namespace_. A _namespace_ is a collection of objects on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules.
+This is the way to create a new vertex in a _namespace_. A _namespace_ is a collection of objects on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules.
 
 #### Usage
 ```javascript
-Appbase.new({ns: namespace, pk: key},callback)
+Appbase.new(namespace,[key],callback)
 ```
- - __ns__ _(optional)_ `String` - Name of the namespace
- - __pk__ _(optional)_ `String` - key given to the new object
+ - __namespace__ `String` - Name of the namespace
+ - __key__ _(optional)_ `String` - key given to the new vertex
  - __callback__ `Function` - err
 
 The _namespace_ automatically is created if it does not already exist. 
 
-Optionally, A unique _primary key_ can be given to the the object, otherwise a generate unique key will be given automatically. The key should not contain '/' character. 
+Optionally, A unique _primary key_ can be given to the vertex, otherwise a generated unique key will be given automatically. The key should not contain '/' character. 
 
-If no _namespace_ given, the new object is goes to a precreated  namespace named _Default_.
-
-If neither the _key_ nor the _namespace_ is given, an object with a generated unique key is created under the _Default_ namespace. 
-
-If the object with the given key already exists, reference to the existing object will be returned.
+If the vertex with the given key already exists, reference to the existing vertex will be returned.
 
 The error may occur if this operation is not permitted, and there are two such cases:
 
@@ -39,36 +43,36 @@ The error may occur if this operation is not permitted, and there are two such c
  2. For the given namespace, creating new objects is not permitted.
 
 #### Returns
-An _Appbase Reference_ pointing to the new/existing object.
+An _Appbase Reference_ pointing to the new/existing vertex.
 
 #### Example
 ```javascript
-var myDataRef = Appbase.new({ns:'prisoner',key:'andy_dufresne'},function(error){
+var abRef = Appbase.new('prisoner','andy_dufresne',function(error){
     if(!error){
-        console.log('object added.')
+        console.log('vertex added.')
     }
 );
 ```
 
 ### Appbase.ref()
-An _Appbase Reference_ allows operating on an object stored in _Appbase_ at some path. This method creates reference pointing to a path. 
+An _Appbase Reference_ allows operating on a vertex stored in _Appbase_ at some path. This method creates reference pointing to a path. 
 
 #### Usage
 ```javascript
 Appbase.ref(path)
 ```
- - __path__ `String` - path to the object in Appbase
-A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points an object. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects. 
+ - __path__ `String` - path to the vertex in Appbase
+A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points a vertex. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects. 
 
 #### Returns
-An `Appbase` reference pointing to the object located at the given path. 
+An `Appbase` reference pointing to the vertex located at the given path. 
 
 #### Example
 ```javascript
-var myDataRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
+var abRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `linkname : 'rock_hammer'` in the object of the `namespace : 'prisoner'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
+The _path_, `'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `edgename : 'rock_hammer'` in the vertex of the `namespace : 'prisoner'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
 
 
 ## Appbase Reference
@@ -79,21 +83,21 @@ To know what path this reference points to.
 
 #### Usage
 ```javascript
-path()
+abRef.path()
 ```
 
 #### Returns
 `String` - The path.
 
-### set()
-Sets a property's value.
+### properties.add()
+Add a property into the vertex and give it a value, or set a value for an existing property.
 
 #### Usage
 ```javascript
-set(prop,val,[callback])
+abRef.properties.add(prop,val,[callback])
 ```
  - __prop__ `String` - property name
- - __value__ `String/Number/Boolean` - value
+ - __value__ `String/Number` - value
  - __callback__ - with args: (err,new obj snapshot)
 
 #### Returns
@@ -104,10 +108,10 @@ A strongly consistent _set_ operation. It allows you create consistent aggregato
 
 #### Usage
 ```javascript
-strongSet(property, apply, [callback])
+abRef.strongSet(property, apply, [callback])
 ```
  - __property__ `String`
- - __apply__ `function` - The function should return which returns String/Number/Boolean. The old value is passed in as an argument to the function
+ - __apply__ `function` - The function should return which returns String/Number. The old value is passed in as an argument to the function
  - __callback__ - with args: (err,new obj snapshot)
 
 #### Returns
@@ -129,12 +133,12 @@ toolRef.strongSet('size',function(prevSize) {
  
 ```
 
-### unset()
+### properties.remove()
 Removes a property.
 
 #### Usage
 ```javascript
-unset(prop,[callback])
+abRef.properties.remove(prop,[callback])
 ```
  - __prop__ `String` - property name
  - __callback__ - with args: (err,new obj snapshot)
@@ -142,19 +146,19 @@ unset(prop,[callback])
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
-### link()
-Sets/inserts a link. This operation creates a new accessible path, which can be used to create an _Appbase Reference_.
+### edges.add()
+Sets/inserts a edge. This operation creates a new accessible path, which can be used to create an _Appbase Reference_.
 
 #### Usage
 ```javascript
-link([linkname], abRef, [index], [callback])
+abRef.edges.add([edgename], abRef, [index], [callback])
 ```
- - __linkname__ _(optional)_ `String`
- - __abRef__ `Appbase Reference` - The object where the link would point
+ - __edgename__ _(optional)_ `String`
+ - __abRef__ `Appbase Reference` - The vertex where the edge would point
  - __index__ `Number` - The property is inserted at the index, things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1.
  - __callback__ - with args: (err)
 
-If no __linkname__ is given while inserting an _Appbase object_, object's __uuid__ will be set as the __property__ name
+If no __edgename__ is given while inserting an _Appbase object_, vertex's __uuid__ will be set as the __property__ name
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
@@ -162,57 +166,60 @@ The same `Appbase` reference, to allow chaining of methods
 #### Example
 ```javascript
 var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
-var toolRef = Appbase.new({ns:'tool'}); // new object of the namespace 'tool'
+var toolRef = Appbase.new('tool'); // new vertex of the namespace 'tool'
 
-toolRef.set('size',12);
-prisonerRef.link('rock_hammer',toolRef);
+toolRef.properties.add('size',12);
+prisonerRef.edges.add('rock_hammer',toolRef);
 
 /* Now Dufresne's rock hammer can be accessed directly with 
  * the path: 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'
  */
 ```
 
-### unlink()
-Removes a link.
+### edges.remove()
+Removes a edge.
 
 #### Usage
 ```javascript
-unlink(linkname,[callback])
+abRef.edges.remove(edgename,[callback])
 ```
- - __linkname__ `String/Appbase Reference` - If while adding the link, no linkname was gievn and only the Appbase Reference was given, then an Appbase Reference can be used to remove the link 
+ - __edgename__ `String/Appbase Reference` - If while adding the edge, no edgename was gievn and only the Appbase Reference was given, then an Appbase Reference can be used to remove the edge 
  - __callback__ - with args: (err)
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
 ### destroy()
-Delete the object from _Appbase_, references to this object in other objects will be removed as well. The appbase reference now turns invalid and listeners won't fire. Any data modification operation will fail.
+Delete the vertex from _Appbase_, references to this vertex in other objects will be removed as well. The appbase reference now turns invalid and listeners won't fire. Any data modification operation will fail.
 
 #### Usage
 ```javascript
-destroy([callback])
+abRef.destroy([callback])
 ```
 - __callback__ - with args: (err)
 
 ### on('value')
 
-Reading of data from _Appbase_ happens through listeing to events on _Appbase References_. This event listens to changes in the value at a path. 
+Reading of data from _Appbase_ happens through listening to events on _Appbase References_. This event listens to changes in the value at a path. 
 
 It immediately fires the event with existing value, when listening for the first time, then fires again whenever the value is changed. 
 
 #### Usage
 ```javascript
-on('value',[listenDepth],callback)
+abRef.on('value',[listenerName],[listenDepth],callback)
 ```
- - __listenDepth__ `Number` - The depth of links up to which listen for data changes. Default value is `1`, meaning data of the object itself.
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener.
+ - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `1`, meaning data of the vertex itself.
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
-`listenDepth` allows listening and retrieving data of the links along with the actual object. If a depth is provided, the method also listens for changes in the links and fires the event when a link's data is changed.
+`listenerName` is a unique string, which can be used later on to turn this listener off using `offWithName()`. This is a way to keep track of listeners. If a `listenerName` is given again with a different callback function, the old callback function is replaced, and will no longer be called when the event is fired, instead the new function is called. If no `listenerName` is given, a unique string will be generated as the listener's name and returned.
 
-In the background, listening with `listenDepth` happens through listening to `value` on the linked objects. It's a costly operation in terms of bandwidth if there are a huge number of links.
+`listenDepth` allows listening and retrieving data of the edges along with the actual vertex. If a depth is provided, the method also listens for changes in the edges and fires the event when a edge's data is changed.
+
+In the background, listening with `listenDepth` happens through listening to `value` on the objects pointed by the edges. It's a costly operation in terms of bandwidth if there are a huge number of edges.
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+A `string` which is the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
@@ -228,18 +235,18 @@ toolRef.on('value',function(toolSnapshot){
 
 prisonerRef.on('value',2,function(prisonerSnapshot){
 
-    /* The `listenDepth` here is '2', so it would listen to changes in the links' data, 
-     * The only link here is 'rock_hammer' and its snapshot is accessible via prisonerSnapshot.link('rock_hammer').
+    /* The `listenDepth` here is '2', so it would listen to changes in the edges' data, 
+     * The only edge here is 'rock_hammer' and its snapshot is accessible via prisonerSnapshot.edges.add('rock_hammer').
      * `prisonerSnapshot` itself contains prisoner's data, and prisonerSnapshot.val() would return {first_name:'Andy', last_name: 'Dufresne'}.
      * Take a look at the Appbase Snapshot Object in this document for details.
      */
 
-    var toolSnapshot = prisonerSnapshot.link('rock_hammer');
+    var toolSnapshot = prisonerSnapshot.edges.add('rock_hammer');
     console.log('prisoner-logger: ' +  + toolSnapshot.val().size);
 });
 
 setTimeout(function(){
-    toolRef.set('size',13);
+    toolRef.properties.add('size',13);
 },2000);
 
 /* Both loggers would immediately log '12' - the existing value. 
@@ -247,7 +254,7 @@ setTimeout(function(){
  */ 
 
 setTimeout(function(){
-    prisonerRef.set('prison_id', 37927);
+    prisonerRef.properties.add('prison_id', 37927);
 },4000);
 
 /* After 4 secs, as prisonerRef's data is changed, 'value' event would be fired on prisonerRef.
@@ -265,51 +272,51 @@ setTimeout(function(){
 
 ```
 
-### on('link_added')
-Get existing links inserted at a location, and listen to new ones.
+### on('edge_added')
+Get existing edges inserted at a location, and listen to new ones.
 
 #### Usage
 ```javascript
-on('link_added',[fetchDepth],[orderingOptions],callback)
+abRef.on('edge_added',[listenerName],[fetchDepth],[orderingOptions],callback)
 ```
- - __fetchDepth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself.
- - `orderingOptions` is an object with properties:
-     - __limit__ How many exsiting links to fetch
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
+ - __fetchDepth__ `Number` - The depth of edges up to which the data should be retrieved. Default is `1`, meaning data of the edge itself.
+ - `orderingOptions` is a vertex with properties:
+     - __limit__ How many exsiting edges to fetch
      - __startAt__ `Number` - index to start with
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
 
-`fetchDepth` here is different from `value` event's `listenDepth` parameter. Here it means that whenever a new link is added, along with its own data, its links' data should be retrieved, too. Fetching of links' data in depth happens only once and it doesn't keep listening to changes in the links' data in depth.
+`fetchDepth` here is different from `value` event's `listenDepth` parameter. Here it means that whenever a new edge is added, along with its own data, its edges' data should be retrieved, too. Fetching of edges' data in depth happens only once and it doesn't keep listening to changes in the edges' data in depth.
 
-`startAt` and `limit` are only effective for retrieving the existing data. New links will be returned regardless of their index.
-
+`startAt` and `limit` are only effective for retrieving the existing properties. New edges will be returned regardless of their index.
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+A `string` which is the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
-var redRef = Appbase.new({ns:'prisoner',pk:'ellis_boyd_red'}); // New prisoner
-redRef.set('firstname','Ellis Boyd');
-redRef.set('lastname','Redding');
-redRef.set('nick','Red');
+var redRef = Appbase.new('prisoner','ellis_boyd_red'); // New prisoner
+redRef.properties.add('firstname','Ellis Boyd');
+redRef.properties.add('lastname','Redding');
+redRef.properties.add('nick','Red');
 
-var capRef = Appbase.new({ns:'clothes'});
-capRef.set('type','Newsboy Cap');
-redRef.link('cap',capRef); // Red has a Newsboy Cap.
+var capRef = Appbase.new('clothes');
+capRef.properties.add('type','Newsboy Cap');
+redRef.edges.add('cap',capRef); // Red has a Newsboy Cap.
 
 var andyRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 
-andyRef.on('link_added',2,function(linkSnap){
-    console.log('Name:', linkSnap.val().nick);
+andyRef.on('edge_added',2,function(edgeSnap){
+    console.log('Name:', edgeSnap.val().nick);
     
     // As the `fetchDepth` is `2`, cap's data is fetched too, and the snapshot is available
-    var capSnap = linkSnap.link('cap'); 
+    var capSnap = edgeSnap.edges.add('cap'); 
     console.log('wears:', capSnap.val().type); 
 });
 
 setTimeout(function(){
-    andyRef.link('best_friend',redRef);
+    andyRef.edges.add('best_friend',redRef);
 },2000);
 
 /* stdout
@@ -320,131 +327,109 @@ setTimeout(function(){
  */
 ```
 
-### on('link_removed')
-Listen to removal of links. 
+### on('edge_removed')
+Listen to removal of edges. 
 
 #### Usage
 ```javascript
-on('link_removed',[fetchDepth],callback)
+abRef.on('edge_removed',[listenerName],[fetchDepth],callback)
 ```
- - __fetchDepth__ `Number` - The depth of links up to which the data should be retrieved. Default is `1`, meaning data of the link itself
- - __callback__ `Function` - with snapshot to the removed object 
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
+ - __fetchDepth__ `Number` - The depth of edges up to which the data should be retrieved. Default is `1`, meaning data of the edge itself
+ - __callback__ `Function` - with snapshot to the removed vertex 
 
 The `fetchDepth` here is similar to the one in 
 
 #### Returns
 The same `Appbase` reference, to allow chaining of methods
 
-### on('link_changed')
-If an existing link is changed, this event is fired.
+###  on('edge_changed')
+If an existing edge is changed, this event is fired.
 
 #### Usage
 ```javascript
-on('link_changed',[listenDepth],callback)
+abRef.on('edge_changed',[listenerName],[listenDepth],callback)
 ```
- - __listenDepth__ `Number` - The depth of links up to which listen for data changes. Default value is `0`, meaning no listening on the data.
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
+ - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `0`, meaning no listening on the properties.
  - __callback__ `Function` - will be passed an Appbase Snapshot Object.
 
-These are the cases, where a link is considered changed:
- 1. A link's order is manually changed, i.e. by calling `link(linkname,order)` and providing a manual order for an existing link
- 2. A link now points to a different object
- 3. Data in the object where the link points, is changed. To listen to such changes, `listenDepth` should be kept `> 0`. 
+These are the cases, where a edge is considered changed:
+ 1. A edge's order is manually changed, i.e. by calling `edge(edgename,order)` and providing a manual order for an existing edge
+ 2. A edge now points to a different vertex
+ 3. Data in the vertex where the edge points, is changed. To listen to such changes, `listenDepth` should be kept `> 0`. 
 
-When the `listenDepth` > `0`, in the background, all the links are being listened for `value` event, and this is a very costly operation if there are a huge number of links. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
+When the `listenDepth` > `0`, in the background, all the edges are being listened for `value` event, and this is a very costly operation if there are a huge number of edges. This is the reason why `listenDepth` is kept `0` by default, where this event is fired only for the first two cases.
  
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+A `string` which is the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
-TODO depth
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 // Existing data at this location: {size:12}
 
 var andy = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
 
-andy.on('link_changed',1,function(snapshot){
-    //As the `listenDepth` is '1', the event is fired when the link's data is changed
+andy.on('edge_changed',1,function(snapshot){
+    //As the `listenDepth` is '1', the event is fired when the edge's data is changed
     console.log(snapshot.val());
 })
 
-toolRef.set('usage','prison break');
+toolRef.properties.add('usage','prison break');
 
 // Logs {size: 12, usage: 'prison break'}.
 ```
 ### off()
-Stop listening to changes.
+Turn off the listeners on an event.
 
 #### Usage
 ```javascript
-off([event])
+abRef.off([event])
 ```
- - __event__ _(optional)_ `String` - All listeners will be cancelled if not specified.
+ - __event__ _(optional)_ `String` - All the listeners on this event, will be turned off. If no event is given, all the listeners on all the events will be turned off.
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Array` of listeners' names, which have been turned off.
 
-### once()
-The callback function is called only once and then its turned off.
-
-#### Usage
-```javascript
-once(event,..)
-```
- - __event__ `String` - Any of the four events, 
- - Other arguments depend on `event`.
-
-This is equivalent to:
-```javascript
-abRef.on('value',function(snap)){
-    // do something with snap
-    abRef.off('value');
-}
-```
-
-#### Returns
-The same `Appbase` reference, to allow chaining of methods
-
-
-### refDuplicate()
-Get a new _Appbase Reference Object_ pointing to the same path. This is useful when you want to use the same object in a different context and attach different listeners.
+### offWithName()
+Turn off a listener by its name.
 
 #### Usage
 ```javascript
-refDuplicate()
+offWithName(listenerName)
 ```
+ - __listenerName__ `String` - The unique name given to the listener while calling `on(event)`.
 
-#### Returns
-New `Appbase` reference
-
-### refToLink()
-Get an _Appbase Reference Object_ pointing to the object stored in the link. This is just string manipulation on the path, and the reference will be returned even if the link doesn't exist, but read/write operations will fail.
+### refToEdge()
+Get an _Appbase Reference Object_ pointing to a edge of the current vertex. This is just string manipulation on the path, and the reference will be returned even if the edge doesn't exist, but read/write operations will fail.
 
 #### Usage
 ```javascript
-refToLink(linkname)
+abRef.refToEdge(edgename)
 ```
+
 #### Returns
 `Appbase` reference
 
 #### Example
 ```javascript
 var prisonerRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne');
-var toolRef = prisonerRef.refToLink('rock_hammer');
+var toolRef = prisonerRef.refToEdge('rock_hammer');
 
 /* `toolRef` points to the the path:
  * 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'
  */
 ```
 
-### refToUplink()
+### refToUpedge()
 Go up in path and get an _Appbase Reference Object_.
 
 #### Usage
 ```javascript
-refToUplink()
+abRef.refToUpedge()
 ```
-Throws an error of the object has no uplink.
+Throws an error of the vertex has no upedge.
 
 #### Returns
 `Appbase` reference
@@ -452,91 +437,97 @@ Throws an error of the object has no uplink.
 #### Example
 ```javascript
 var toolRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
-var prisonerRef = toolRef.refToUplink();
+var prisonerRef = toolRef.refToUpedge();
 
 /* `prisonerRef` points to the the path:
  * 'https://shawshank.api.appbase.io/prisoner/andy_dufresne'
  */
  
-var newRef = prisonerRef.refToUplink(); //Throws an error
+var newRef = prisonerRef.refToUpedge(); //Throws an error
 ```
 
 ## Appbase Snapshot Object
 _Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference.
 
-### val()
-Returns the data (prop-value pairs) in the form of a JavaScript object.
+### properties()
+Returns prop-value pairs in the form of a JavaScript object.
 
 #### Usage
 ```javascript
-val()
+snapObj.properties()
 ```
 
-### prevVal()
+### prevProperties()
 Returns the data in the form of a JavaScript object as it was before this change was received.
 
 #### Usage
 ```javascript
-prevVal()
+snapObj.prevProperties()
 ```
 
-### ref()
-Returns an Appbase Reference for this object.
+### namespace()
+Returns the _namespace_ of the vertex. 
 
 #### Usage
 ```javascript
-ref()
+snapObj.namespace()
+```
+### ref()
+Returns an Appbase Reference for this vertex.
+
+#### Usage
+```javascript
+snapObj.ref()
 ```
 
 ### name()
-The link name with which the object is stored in the current path.
+The edge name with which the vertex is stored in the current path.
 #### Usage
 ```javascript
-name()
+snapObj.name()
 ```
 
 ### index()
-Returns the index of this object
+Returns the index of this vertex
 
 #### Usage
 ```javascript
-index()
+snapObj.index()
 ```
 
 
 ### prevIndex()
-Returns the index of this object before this change was received.
+Returns the index of this vertex before this change was received.
 
 #### Usage
 ```javascript
-prevIndex()
+snapObj.prevIndex()
 ```
 
-### link()
-Snapshot object of the link.  
-Applicable only when the object is being listened with `depth` more than 1.
+### edge()
+Snapshot object of the edge.  
+Applicable only when the vertex is being listened with `depth` more than 1.
 
 #### Usage
 ```javascript
-link(linkname)
+snapObj.edge(edgename)
 ```
 
-### links()
-Array containing _Appbase Snapshot Objects_ for all the links, in the same order specified while adding the links.  
-Applicable only when the object is being listened with `depth` more than 1.
+### edges()
+Array containing _Appbase Snapshot Objects_ for all the edges, in the same order specified while adding the edges.  
+Applicable only when the vertex is being listened with `depth` more than 1.
 
 #### Usage
 ```javascript
-links()
+snapObj.edges()
 ```
 
 ### exportVal()
-TODO
 Returns the data in the form of a JavaScript object with ordering data.
 
 #### Usage
 ```javascript
-exportVal()
+snapObj.exportVal()
 ```
 
 ## Privileged Methods
@@ -545,7 +536,7 @@ These methods shouldn't be a necessity in the normal application working. The us
 
 ### Appbase.rename()
 
-Allows renaming of namespaces, object primary keys and moving an object to a different namespace.
+Allows renaming of namespaces, vertex primary keys and moving a vertex to a different namespace.
 
 
 #### Usage
@@ -557,10 +548,10 @@ Appbase.rename(old,new)
 
 The old /namespace or /namespace/pk must exist and the new one must not.
 
-The links pointing to the object being renamed will still work.
+The edges pointing to the vertex being renamed will still work.
 
 #### Returns
-An `Appbase` reference pointing to the new path, if renaming of an object is happening. `undefined` otherwise.
+An `Appbase` reference pointing to the new path, if renaming of a vertex is happening. `undefined` otherwise.
 
 #### Example
 ```javascript
@@ -568,18 +559,18 @@ Appbase.rename('/users', '/prisoners'); // Renaming a namespace
 
 Appbase.rename('/users/abc', '/users/xyz'); //Renaming the primary key
 
-Appbase.rename('/users/abc', '/prisoners'); // Moving an object to another namespace
+Appbase.rename('/users/abc', '/prisoners'); // Moving a vertex to another namespace
 
-Appbase.rename('/users/abc', '/prisoners/pqr'); // Moving an object to another namespace and renaming its primary key too
+Appbase.rename('/users/abc', '/prisoners/pqr'); // Moving a vertex to another namespace and renaming its primary key too
 
 Appbase.rename('/user/pqr/xyz','/user/abc/klm'); //Throws an error, as the path should only be up to /namespace/pk
 
 Appbase.rename('/users', '/prisoners/abc'); // Throws an error, if `old` is a namespace, the `new` has to a be namespace.
 
 var abRef = ('/user/abc');
-var abNewRef = Appbase.rename(abRef,'/user/pqr'); //Renaming the primary key. `abRef` will now turn invalid, and listeners won't work, until a new object at /user/abc is created. Use `abNewRef` instead.
+var abNewRef = Appbase.rename(abRef,'/user/pqr'); //Renaming the primary key. `abRef` will now turn invalid, and listeners won't work, until a new vertex at /user/abc is created. Use `abNewRef` instead.
 
-var prisonerRef = Appbase.rename(abNewRef,'/prisoner'); // Moving an object to another namespace.
+var prisonerRef = Appbase.rename(abNewRef,'/prisoner'); // Moving a vertex to another namespace.
 
 
 ```
