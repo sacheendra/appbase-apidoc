@@ -15,7 +15,7 @@ The data model in Appbase can be best visualized as a graph. Each object in Appb
 
 ### Javascript Objects
  * Appbase Reference
- * Snapshot Object
+ * Vertex Snapshot
 
 ## Appbase Global
 
@@ -23,16 +23,14 @@ The data model in Appbase can be best visualized as a graph. Each object in Appb
 
 Creates a new __vertex__ object and applies a _namespace_ to it.
 
-#### Returns
-An _Appbase reference_ pointing to the new vertex.
-
 #### Usage
 ```javascript
 Appbase.new(namespace,[key],callback)
 ```
  - __namespace__ `String` - key of the namespace
  - __key__ _(optional)_ `String` - key given to the new vertex
- - __callback__ `Function` - err
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
 
 The _namespace_ is automatically created if it does not already exist.
 
@@ -41,8 +39,10 @@ A unique _key_ can be given to the vertex. Otherwise, a unique key will be gener
 The error may occur if this operation is not permitted, and there are two such cases:
 
  1. Namespace doesn't exist and creation of new namespaces is not permitted.
- 2. For the given namespace, creating new objects is not permitted.
+ 2. For the given namespace, creating new vertexes is not permitted.
 
+#### Returns
+`Appbase Reference` - pointing to the new/existing vertex.
 
 #### Example
 ```javascript
@@ -64,18 +64,17 @@ Appbase.ref(path)
 A _Path_ in Appbase consists of one or more linked vertices with the endpoint always being a vertex. '/' is used to demarcate between consequent vertices. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects.
 
 #### Returns
-An `Appbase` reference pointing to the vertex located at the given path. 
+`Appbase Reference` - pointing to the vertex located at the given path.
 
 #### Example
 ```javascript
 var abRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer');
 ```
 
-The _path_, `'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer'` points to an _object_, which is inserted as the `edgename : 'rock_hammer'` in the vertex of the `namespace : 'prisoner'` with `key : andy_dufresne`. The application's base url is `https://shawshank.api.appbase.io`.
-
+The _path_, 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer' points to a _vertex_, which is inserted as the __edgename : 'rock_hammer'__ in the _vertex_ of the __namespace : 'prisoner'__ with __key : andy_dufresne__. The application's _base url_ is __https://shawshank.api.appbase.io__.
 
 ## Appbase Reference
-Operations, such as read/write on objects, located at a path can be done using Appbase references.
+Operations, such as read/write on vertex, located at a path can be done using Appbase References.
 
 ### path()
 To know what path this reference points to.
@@ -97,10 +96,13 @@ abRef.properties.add(prop,val,[callback])
 ```
  - __prop__ `String` - property name
  - __value__ `String/Number` - value
- - __callback__ - with args: (err,new obj snapshot)
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference` - points to the same path on which the method is called
+    - __snapObj__ `Vertex Snapshot` - Snapshot of the new data stored in the vertex.
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Appbase Reference` - pointing to the same path where the method is called. This allows chaining of methods.
 
 ### properties.commit()
 A strongly consistent _set_ operation. It allows you create consistent aggregators, such as counters.
@@ -111,10 +113,15 @@ abRef.properties.commit(property, apply, [callback])
 ```
  - __property__ `String`
  - __apply__ `function` - The function should return which returns String/Number. The old value is passed in as an argument to the function
- - __callback__ - with args: (err,new obj snapshot)
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference` - points to the same path on which the method is called
+    - __snapObj__ `Vertex Snapshot` - - Snapshot of the new data stored in the vertex.
+    - __isCommitted__ `Boolean` - Whether the final value is committed or is still the new data returned from the server 
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Appbase Reference` - pointing to the same path where the method is called. This allows chaining of methods.
+
 
 #### Example
 ```javascript
@@ -140,13 +147,16 @@ Removes a property.
 abRef.properties.remove(prop,[callback])
 ```
  - __prop__ `String` - property name
- - __callback__ - with args: (err,new obj snapshot)
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference` - points to the same path on which the method is called
+    - __snapObj__ `Vertex Snapshot` - - Snapshot of the new data stored in the vertex.
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Appbase Reference` - pointing to the same path where the method is called. This allows chaining of methods.
 
 ### edges.add()
-Sets/inserts a edge. This operation creates a new accessible path, which can be used to create an _Appbase Reference_.
+Sets/inserts a unidirectional edge to another vertex. This operation also creates a new accessible path, which can be used to create an `Appbase Reference`.
 
 #### Usage
 ```javascript
@@ -154,19 +164,21 @@ abRef.edges.add([edgename], [abRef], [index], [callback])
 ```
  - __edgename__ _(optional)_ `String`
  - __abRef__ _(optional)_ `Appbase Reference` - The vertex where the edge would point
- - __index__ _(optional)_ `Number` - The property is inserted at the index, things after that are moved back by 1. Push is same as inserting at 0. Enqueue is same as inserting at -1. If no `index` is given, the edge would be enqueued.
- - __callback__ - with args: (err)
+ - __index__ _(optional)_ `Number` - The property is inserted at the index, things after that are moved back by __1__. Push is same as inserting at __0__. Enqueue is same as inserting at __-1__. If no `index` is given, the edge would be enqueued
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference` - points to the same path on which the method is called
 
 Either two of the first there optional arguments is necessary for the method to work.
 
-If no `edgename` is given while inserting an _Appbase object_, vertex's __uuid__ will be set as the edge's name.
+If no `edgename` is given, vertex's __uuid__ will be set as the edge's name.
 
-If some edge exists and points to a vertex, and now its passed as `edgename` with an Appbase Reference of some other vertex, the edge will be _replaced_. It is considered to be _removed_ and _added_ again, therefore, __edge_removed__ event will be fired, followed by __edge_added__ for the same edge. Take a look at the documentation of `abRef.on()` for more details on the events.
+If some edge exists and points to a vertex, and now its passed as `edgename` with an `Appbase Reference` of some other vertex, the edge will be _replaced_. It is considered to be _removed_ and _added_ again, therefore, __edge_removed__ event will be fired, followed by __edge_added__ for the same edge. Take a look at the documentation of `abRef.on()` for more details on the events.
 
-If an existing edgename, or abRef is passed with an index, the edge  is moved to that index, and all the following edges are  considered moved, too. __edge_moved__ event will be fired on all of them. 
+If name or abRef for an existing edge is passed with an index, the edge  is moved to that index, and all the following edges are  considered moved, too. __edge_moved__ event will be fired on all of them. 
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Appbase Reference` - pointing to the same path where the method is called. This allows chaining of methods.
 
 #### Example
 ```javascript
@@ -189,19 +201,22 @@ Removes a edge.
 abRef.edges.remove(edgename,[callback])
 ```
  - __edgename__ `String/Appbase Reference` - If while adding the edge, no edgename was gievn and only the Appbase Reference was given, then an Appbase Reference can be used to remove the edge 
- - __callback__ - with args: (err)
+ - __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
+    - __abRef__ `Appbase Reference` - points to the same path on which the method is called
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`Appbase Reference` - pointing to the same path where the method is called. This allows chaining of methods.
 
 ### destroy()
-Delete the vertex from _Appbase_, references to this vertex in other objects will be removed as well. The appbase reference now turns invalid and listeners won't fire. Any data modification operation will fail.
+Delete the vertex from _Appbase_, edges to this vertex in other vertexes will be removed as well. The appbase reference now turns invalid and listeners won't fire. Any data modification operation will fail.
 
 #### Usage
 ```javascript
 abRef.destroy([callback])
 ```
-- __callback__ - with args: (err)
+- __callback__ `Function` - will be passed these as arguments:
+    - __error__ `Boolean/String`
 
 ### on('value')
 
@@ -216,13 +231,13 @@ abRef.on('value',[listenerName],callback)
  - __listenerName__ _(Optional)_ `String` - Name given to the listener.
  - __callback__ `Function` - will be passed these as arguments:
     - __error__ `Boolean/String`
-    - __abRef__ `Appbase Reference Object` - points the path on which the event is fired
-    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the path. Take a look at the documentation of Appbase Snapshot Object.
+    - __abRef__ `Appbase Reference` - points to the path on which the event is fired
+    - __snapObj__ `Vertex Snapshot` - Snapshot of the data stored in the vertex. Take a look at the documentation of `Vertex Snapshot`
 
-`listenerName` is a unique string, which can be used later on to turn this listener off using `offWithName()`. This is a way to keep track of listeners. If a `listenerName` is given again with a different callback function, the old callback function is replaced, and will no longer be called when the event is fired, instead the new function is called. If no `listenerName` is given, a unique string will be generated as the listener's name and returned.
+`listenerName` is a unique string, which can be used later on to turn this listener off using `offWithName(listenerName)`. This is a way to keep track of listeners. If a `listenerName` is given again with a different callback function, the old callback function is replaced, and will no longer be called when the event is fired, instead the new function will be called. If no `listenerName` is given, a unique string will be generated as the listener's name and returned.
 
 #### Returns
-A `string` which is the listener's name and can be used to turn the listener off.
+`String` - the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
@@ -249,22 +264,22 @@ Get existing edges inserted at a location, and listen to new ones.
 ```javascript
 abRef.on('edge_added',[listenerName],[options],callback)
 ```
- - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation of `on('value')`
  - __options__ `Object`
      - __limit__ How many existing edges to fetch
      - __startAt__ `Number` - Index to start with
      - __noData__ `Boolean` - Whether to include the data stored at the vertex where the edge points 
  - __callback__ `Function` - will be passed these as arguments:
     - __error__ `Boolean/String`
-    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
-    - __[snapObj]__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
+    - __abRef__ `Appbase Reference` - pointing to path of the edge
+    - __[snapObj]__ `Vertex Snapshot` - Snapshot of the data stored in the vertex, where the edge points. Take a look at the documentation of `Vertex Snapshot`
 
 `snapObj` will not be passed if `{noData: true}` is passed as the options to the listener.
 
 `startAt` and `limit` are only effective for retrieving the existing properties. New edges will be returned regardless of their index.
 
 #### Returns
-A `string` which is the listener's name and can be used to turn the listener off.
+`String` - the listener's name and can be used to turn the listener off.
 
 #### Example
 ```javascript
@@ -295,15 +310,14 @@ Listen to removal of edges.
 ```javascript
 abRef.on('edge_removed',[listenerName],callback)
 ```
- - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
- - __fetchDepth__ `Number` - The depth of edges up to which the data should be retrieved. Default is `1`, meaning data of the edge itself
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation of `on('value')`.
  - __callback__ `Function` - will be passed these as arguments:
     - __error__ `Boolean/String`
-    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
-    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
+    - __abRef__ `Appbase Reference` - pointing to path of the edge
+    - __snapObj__ `Vertex Snapshot` - Snapshot of the data stored in the vertex, where the edge used to point. Take a look at the documentation of `Vertex Snapshot`
 
 #### Returns
-The same `Appbase` reference, to allow chaining of methods
+`String` - the listener's name and can be used to turn the listener off.
 
 ###  on('edge_changed')
 If the properties of the vertex, pointed by an existing edge is changed, this event is fired.
@@ -312,17 +326,17 @@ If the properties of the vertex, pointed by an existing edge is changed, this ev
 ```javascript
 abRef.on('edge_changed',[listenerName],callback)
 ```
- - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
- - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `0`, meaning no listening on the properties.
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation of `on('value')`.
  - __callback__ `Function` - will be passed these as arguments:
     - __error__ `Boolean/String`
-    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
-    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
+    - __abRef__ `Appbase Reference` - pointing to path of the edge
+    - __snapObj__ `Vertex Snapshot` - Snapshot of the data stored in the vertex, where the edge points. Take a look at the documentation of `Vertex Snapshot`
 
-For this event to fire, in the background the vertexes pointed by all the edges are listened for `value` event, and this would be a costly operation in terms of bandwidth if there are a huge number of edges.
+For this event to fire, in the background the vertexes pointed by all the edges are listened for __value__ event, and this would be a costly operation in terms of bandwidth if there are a huge number of edges.
 
 #### Returns
-A `string` which is the listener's name and can be used to turn the listener off.
+`String` - the listener's name and can be used to turn the listener off.
+
 
 #### Example
 ```javascript
@@ -357,15 +371,16 @@ When the order of an edge is manually changed by calling `abRef.edges.add()` on 
 ```javascript
 abRef.on('edge_moved',[listenerName],callback)
 ```
- - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation `on('value')`.
+ - __listenerName__ _(Optional)_ `String` - Name given to the listener. For details, take a look at the documentation of `on('value')`.
  - __listenDepth__ `Number` - The depth of edges up to which listen for data changes. Default value is `0`, meaning no listening on the properties.
  - __callback__ `Function` - will be passed these as arguments:
     - __error__ `Boolean/String`
-    - __abRef__ `Appbase Reference Object` - pointing to path of the edge
-    - __snapObj__ `Appbase Snapshot Object` - Snapshot of the data stored at the vertex pointed by the edge
+    - __abRef__ `Appbase Reference` - pointing to path of the edge
+    - __snapObj__ `Vertex Snapshot` - Snapshot of the data stored in the vertex, where the edge points. Take a look at the documentation of `Vertex Snapshot`
  
 #### Returns
-A `string` which is the listener's name and can be used to turn the listener off.
+`String` - the listener's name and can be used to turn the listener off.
+
 
 
 ### off()
@@ -378,7 +393,7 @@ abRef.off([event])
  - __event__ _(optional)_ `String` - All the listeners on this event, will be turned off. If no event is given, all the listeners on all the events will be turned off.
 
 #### Returns
-`Array` of listeners' names, which have been turned off.
+`Array` - containing listeners' names, which have been turned off.
 
 ### offWithName()
 Turn off a listener by its name.
@@ -390,7 +405,7 @@ offWithName(listenerName)
  - __listenerName__ `String` - The unique name given to the listener while calling `on(event)`.
 
 ### refToEdge()
-Get an _Appbase Reference Object_ pointing to a edge of the current vertex. This is just string manipulation on the path, and the reference will be returned even if the edge doesn't exist, but read/write operations will fail.
+Get an _Appbase Reference_ pointing to a edge of the current vertex. This is just string manipulation on the path, and the reference will be returned even if the edge doesn't exist, but read/write operations will fail.
 
 #### Usage
 ```javascript
@@ -398,7 +413,7 @@ abRef.refToEdge(edgename)
 ```
 
 #### Returns
-`Appbase` reference
+`Appbase Reference`
 
 #### Example
 ```javascript
@@ -411,7 +426,7 @@ var toolRef = prisonerRef.refToEdge('rock_hammer');
 ```
 
 ### refToUpedge()
-Go up in path and get an _Appbase Reference Object_.
+Go up in path and get an _Appbase Reference_.
 
 #### Usage
 ```javascript
@@ -420,7 +435,7 @@ abRef.refToUpedge()
 Throws an error of the vertex has no upedge.
 
 #### Returns
-`Appbase` reference
+`Appbase Reference`
 
 #### Example
 ```javascript
@@ -434,8 +449,8 @@ var prisonerRef = toolRef.refToUpedge();
 var newRef = prisonerRef.refToUpedge(); //Throws an error
 ```
 
-## Appbase Snapshot Object
-_Appbase Snapshot Object_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference.
+## Vertex Snapshot
+_Vertex Snapshot_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference.
 
 ### properties()
 Returns prop-value pairs in the form of a JavaScript object.
@@ -497,15 +512,16 @@ Allows renaming of namespaces, vertex primary keys and moving a vertex to a diff
 ```javascript
 Appbase.rename(old,new)
 ```
- - __old__ `String` - old /namespace, or /namespace/pk or Appbase Reference Object
- - __new__ `String` - new /namespace, or /namespace/pk
+ - __old__ `String/Appbase Reference` - old '/namespace', or '/namespace/pk' or `Appbase Reference` poiting to '/namespace/pk'
+ - __new__ `String` - new '/namespace', or '/namespace/pk'
 
 The old /namespace or /namespace/pk must exist and the new one must not.
 
 The edges pointing to the vertex being renamed will still work.
 
 #### Returns
-An `Appbase` reference pointing to the new path, if renaming of a vertex is happening. `undefined` otherwise.
+`Appbase Reference` - pointing to the new path, if renaming of a vertex is happening,  
+`undefined` otherwise.
 
 #### Example
 ```javascript
