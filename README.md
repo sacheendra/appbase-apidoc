@@ -5,8 +5,10 @@ The data model in Appbase can be best visualized as a graph. Each object in Appb
 ## Appbase Datatypes
 
 ### Conceptual
+  * Namespace
   * Vertex
-  * Edge
+  * Named Edge
+  * Ordered Edge
   * Property
 
 ### Primitive Javascript
@@ -34,21 +36,20 @@ Appbase.new(namespace,[key],callback)
 
 The _namespace_ is automatically created if it does not already exist.
 
-A unique _key_ can be given to the vertex. Otherwise, a unique key will be generated automatically. The key should not contain any whitespace and '/' character. If the vertex with the given key already exists, reference to the existing vertex will be returned.
+A unique _key_ can be given to the vertex. Otherwise, a unique key will be generated automatically. The key should not contain any whitespace and '/' character.
 
-The error may occur if this operation is not permitted, and there are two such cases:
-
- 1. Namespace doesn't exist and creation of new namespaces is not permitted.
- 2. For the given namespace, creating new vertexes is not permitted.
+An error occurs if a vertex already exists for the given namespace and key.
 
 #### Returns
-`Appbase Reference` - pointing to the new/existing vertex.
+`Appbase Reference` - pointing to the new vertex.
 
 #### Example
 ```javascript
 var abRef = Appbase.new('prisoner', 'andy_dufresne', function(error) {
     if (!error) {
-        console.log('vertex added.')
+        console.log('Vertex created.')
+    } else {
+        console.log('The vertex already exists.')
     }
 );
 ```
@@ -74,7 +75,7 @@ var abRef = Appbase.ref('https://shawshank.api.appbase.io/prisoner/andy_dufresne
 The _path_, 'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hammer' points to a _vertex_, which is inserted as the __edgename : 'rock_hammer'__ in the _vertex_ of the __namespace : 'prisoner'__ with __key : andy_dufresne__. The application's _base url_ is __https://shawshank.api.appbase.io__.
 
 ## Appbase Reference
-Operations, such as read/write on vertex, located at a path can be done using Appbase References.
+Operations, such as read/write on vertex, located at a path can be done using an `Appbase Reference`.
 
 ### path()
 To know what path this reference points to.
@@ -452,52 +453,26 @@ var newRef = prisonerRef.refToUpedge(); //Throws an error
 ## Vertex Snapshot
 _Vertex Snapshot_ is an immutable copy of the data at a location in _Appbase_. It is passed to callbacks in all event firing. It can't be modified and will never change. To modify data, use an Appbase reference.
 
-### properties()
-Returns prop-value pairs in the form of a JavaScript object.
+### Snapshot Methods
+Method | Returns
+-|-
+properties() | prop-value pairs in the form of a JavaScript object
+prevProperties() | the previous version of prop-value pairs
+namespace() | the _namespace_ of the vertex
+name() | the edge name with which the vertex is stored in the current path
+index() | index of this vertex in the current path
+prevIndex() | the previous index of this vertex in the current path
 
-#### Usage
-```javascript
-snapObj.properties()
-```
+The following table shows what exact data would be returned by the methods in different kind of events.
 
-### prevProperties()
-Returns the data in the form of a JavaScript object as it was before this change was received.
+Method | value | edge_added | edge_removed | edge_changed | edge_moved
+-|-|-|-|-|-
+properties() | properties of the **vertex being listened** | properties of the vertex pointed by **the edge** | **null** | **new** properties of the vertex pointed by **the edge** | properties of the vertex pointed by **the edge**
+prevProperties() | **null** when the event is fired for **the first time** , *and*, **previous version** of properties when they are **changed later on** | **null** | properties of the vertex pointed by **the edge being deleted** | **previous version** of properties of the vertex pointed by the edge | same as **properties()**
+index() | **index** of the edge pointing to **this vertex** in the current path | **index** of **the edge** | **null** | **index** of **the edge** | **current** index of **the edge**
+prevIndex() | same as **index()** | **null** | **index** of **the edge being deleted** | same as **index()**  | **previous** index of **the edge**
 
-#### Usage
-```javascript
-snapObj.prevProperties()
-```
 
-### namespace()
-Returns the _namespace_ of the vertex. 
-
-#### Usage
-```javascript
-snapObj.namespace()
-```
-
-### name()
-The edge name with which the vertex is stored in the current path.
-#### Usage
-```javascript
-snapObj.name()
-```
-
-### index()
-Returns the index of this vertex
-
-#### Usage
-```javascript
-snapObj.index()
-```
-
-### prevIndex()
-Returns the index of this vertex before this change was received.
-
-#### Usage
-```javascript
-snapObj.prevIndex()
-```
 
 ## Privileged Methods
 
