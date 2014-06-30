@@ -1,6 +1,6 @@
-# appbase.io API Documentation
-
 # Appbase JavaScript API
+
+The data model in Appbase can be best visualized as a graph. Each object in Appbase is represented as a __vertex__. _Vertices_ can store primitive values and are linked to other vertices by __edges__. Each _vertex_ belongs to a __namespace__. _Namespaces_ act as convenient entry points into the graph, and as we will see later, help with applying _security rules and permissions_.
 
 ## Appbase Datatypes
 
@@ -21,48 +21,47 @@
 
 ### Appbase.new()
 
-This is the way to create a new vertex in a _namespace_. A _namespace_ is a collection of objects on which _security rules and permissions_ can be applied and all the objects belonging to this namespace will follow the rules.
+Creates a new __vertex__ object and applies a _namespace_ to it.
+
+#### Returns
+An _Appbase reference_ pointing to the new vertex.
 
 #### Usage
 ```javascript
 Appbase.new(namespace,[key],callback)
 ```
- - __namespace__ `String` - Name of the namespace
+ - __namespace__ `String` - key of the namespace
  - __key__ _(optional)_ `String` - key given to the new vertex
  - __callback__ `Function` - err
 
-The _namespace_ automatically is created if it does not already exist. 
+The _namespace_ is automatically created if it does not already exist.
 
-Optionally, A unique _primary key_ can be given to the vertex, otherwise a generated unique key will be given automatically. The key should not contain '/' character. 
-
-If the vertex with the given key already exists, reference to the existing vertex will be returned.
+A unique _key_ can be given to the vertex. Otherwise, a unique key will be generated automatically. The key should not contain any whitespace and '/' character. If the vertex with the given key already exists, reference to the existing vertex will be returned.
 
 The error may occur if this operation is not permitted, and there are two such cases:
 
  1. Namespace doesn't exist and creation of new namespaces is not permitted.
  2. For the given namespace, creating new objects is not permitted.
 
-#### Returns
-An _Appbase Reference_ pointing to the new/existing vertex.
 
 #### Example
 ```javascript
-var abRef = Appbase.new('prisoner','andy_dufresne',function(error){
-    if(!error){
+var abRef = Appbase.new('prisoner', 'andy_dufresne', function(error) {
+    if (!error) {
         console.log('vertex added.')
     }
 );
 ```
 
 ### Appbase.ref()
-An _Appbase Reference_ allows operating on a vertex stored in _Appbase_ at some path. This method creates reference pointing to a path. 
+An _Appbase reference_ allows operating on a vertex stored in _Appbase_ at some path. This method creates a reference pointing to a path.
 
 #### Usage
 ```javascript
 Appbase.ref(path)
 ```
  - __path__ `String` - path to the vertex in Appbase
-A _Path_ in Appbase represents a chain of elements, separated with '/', and it finally points a vertex. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects. 
+A _Path_ in Appbase consists of one or more linked vertices with the endpoint always being a vertex. '/' is used to demarcate between consequent vertices. The _base-url_ is a unique string for the Application, and the first element after the url represents a namespace, and following elements are objects.
 
 #### Returns
 An `Appbase` reference pointing to the vertex located at the given path. 
@@ -76,7 +75,7 @@ The _path_, `'https://shawshank.api.appbase.io/prisoner/andy_dufresne/rock_hamme
 
 
 ## Appbase Reference
-Operations, such as read/write on objects, located at a path can be done using Appbase References.
+Operations, such as read/write on objects, located at a path can be done using Appbase references.
 
 ### path()
 To know what path this reference points to.
@@ -87,7 +86,7 @@ abRef.path()
 ```
 
 #### Returns
-`String` - The path.
+`String` - The path
 
 ### properties.add()
 Add a property into the vertex and give it a value, or set a value for an existing property.
